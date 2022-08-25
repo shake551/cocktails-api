@@ -1,0 +1,137 @@
+swagger: "2.0"
+info:
+  description: "カクテルの作り方のAPI"
+  version: "1.0.0"
+  title: "Cocktails API"
+host: "localhost:8080"
+tags:
+  - name: "cocktails"
+    description: "カクテル関連API"
+schemes:
+  - "http"
+paths:
+  /cocktails:
+    get:
+      tags:
+        - "cocktails"
+      summary: "カクテルリスト取得API"
+      description: "カクテルリストの取得\n offsetとlimitを受け取り、カクテルリストを取得します"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "query"
+          name: "offset"
+          description: "オフセット"
+          type: "integer"
+          required: false
+        - in: "query"
+          name: "limit"
+          description: "最大取得件数"
+          type: "integer"
+          required: false
+      responses:
+        200:
+          "description": "A successful response."
+          "schema":
+            "$ref": "#/definitions/CocktailsListResponse"
+
+  /cocktal/create:
+    post:
+      tags:
+        - "cocktails"
+      summary: "カクテル登録API"
+      description: "カクテルの登録\n カクテル名、材料を登録する"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Request Body"
+          required: true
+          schema:
+            $ref: "#/definitions/CocktailCreateRequest"
+      responses:
+        200:
+          "description": "A successful response."
+          "schema":
+            "$ref": "#/definitions/CocktailCreateRequest"
+
+  /cocktail/get/{id}:
+    get:
+      tags:
+        - "cocktails"
+      summary: "カクテル情報取得API"
+      description: "カクテル情報の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: id
+          description: "カクテルID"
+          type: integer
+          required: true
+      responses:
+        200:
+          "description": "A successful response."
+          "schema":
+            "$ref": "#/definitions/CocktailResponse"
+
+definitions:
+  CocktailsListResponse:
+    type: "object"
+    properties:
+      cocktails:
+        type: "array"
+        items:
+          $ref: "#/definitions/CocktailResponse"
+  CocktailResponse:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        description: "カクテルID"
+      name:
+        type: "string"
+        description: "カクテル名"
+      image_url:
+        type: "string"
+        description: "画像URL"
+      materials:
+        type: "array"
+        items:
+          $ref: "#/definitions/CocktailMaterial"
+  CocktailMaterial:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+        description: "材料ID"
+      name:
+        type: "string"
+        description: "材料名"
+  CocktailCreateRequest:
+    type: "object"
+    properties:
+      name:
+        type: string
+        description: "カクテル名"
+      image:
+        type: object
+        description: "カクテル画像"
+      materials:
+        type: array
+        items:
+          $ref: "#/definitions/CocktailCreateMaterial"
+        description: "材料リスト"
+  CocktailCreateMaterial:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "材料名"
