@@ -1,0 +1,27 @@
+version: '3'
+services:
+  app:
+    restart: always
+    image: alpine:latest
+    depends_on:
+      - mysqld
+    ports:
+      - 80:8080
+    volumes:
+      - ./bin:/app
+    entrypoint:
+      - /app/cocktails-api-server
+
+  mysqld:
+    platform: linux/x86_64
+    image: mysql:8.0.29
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+    volumes:
+      - ./schema:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: shake
+      MYSQL_USER: shake
+      MYSQL_PASSWORD: shake
+      MYSQL_DATABASE: cocktail
