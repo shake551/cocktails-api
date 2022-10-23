@@ -115,6 +115,18 @@ definitions:
       name:
         type: "string"
         description: "材料名"
+      quantity:
+        type: object
+        $ref: "#/definitions/MaterialQuantity"
+  MaterialQuantity:
+    type: "object"
+    properties:
+      quantity:
+        type: "integer"
+        description: "分量"
+      unit:
+        type: "string"
+        description: "単位"
   CocktailCreateRequest:
     type: "object"
     properties:
@@ -135,3 +147,6 @@ definitions:
       name:
         type: string
         description: "材料名"
+      quantity:
+        type: object
+        $ref: "#/definitions/MaterialQuantity"
