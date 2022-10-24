@@ -11,14 +11,16 @@ CREATE TABLE IF NOT EXISTS materials (
     name VARCHAR(128) NOT NULL,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    quantity INTEGER,
+    unit VARCHAR(128)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS cocktail_materials (
     cocktail_id INTEGER NOT NULL,
     material_id INTEGER NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS cocktail_materials (
+CREATE TABLE IF NOT EXISTS cocktail_material_images (
     id INTEGER UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     data LONGTEXT NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
