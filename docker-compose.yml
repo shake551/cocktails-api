@@ -9,6 +9,8 @@ services:
       - 80:8080
     volumes:
       - ./bin:/app
+    environment:
+      DSN: root:shake@tcp(mysqld)/cocktail
     entrypoint:
       - /app/cocktails-api-server
 
@@ -25,3 +27,4 @@ services:
       MYSQL_USER: shake
       MYSQL_PASSWORD: shake
       MYSQL_DATABASE: cocktail
+      TZ: "Asia/Tokyo"
