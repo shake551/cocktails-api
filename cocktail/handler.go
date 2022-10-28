@@ -41,14 +41,14 @@ func GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var keyword = v.Get("keyword")
 
-	channels, err := cr.GetLimit(r.Context(), limit, offset, keyword)
+	cocktails, err := cr.GetLimit(r.Context(), limit, offset, keyword)
 	if err != nil {
-		log.Printf("failed to get channels. err: %v", err)
+		log.Printf("failed to get cocktails. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	b, err := json.Marshal(channels)
+	b, err := json.Marshal(cocktails)
 	if err != nil {
 		log.Printf("failed to parse json. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
