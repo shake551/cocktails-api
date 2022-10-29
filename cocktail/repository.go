@@ -49,11 +49,20 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 
 	var cocktails []Cocktail
 	for rows.Next() {
-		cock := Cocktail{}
-		if err := rows.Scan(&cock.ID, &cock.Name, &cock.ImageURL, &cock.CreatedAt, &cock.UpdatedAt); err != nil {
+		nc := NullableCocktail{}
+		if err := rows.Scan(&nc.ID, &nc.Name, &nc.ImageURL, &nc.CreatedAt, &nc.UpdatedAt); err != nil {
 			return nil, err
 		}
-		cocktails = append(cocktails, cock)
+
+		c := Cocktail{
+			ID:        nc.ID,
+			Name:      nc.Name,
+			ImageURL:  nc.ImageURL.String,
+			Materials: nc.Materials,
+			CreatedAt: nc.CreatedAt,
+			UpdatedAt: nc.CreatedAt,
+		}
+		cocktails = append(cocktails, c)
 	}
 
 	if len(cocktails) == 0 {
