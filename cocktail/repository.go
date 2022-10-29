@@ -3,7 +3,6 @@ package cocktail
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"github.com/shake551/cocktails-api/db"
 	"log"
 	"time"
@@ -75,6 +74,41 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 	return cocktails, nil
 }
 
+//func (r CocktailsRepository) FindCocktailsByID(ctx context.Context, id int64) (CocktailsDetail, error) {
+//	log.Printf("get cocktails with cocktail id...")
+//
+//	query := `SELECT * FROM cocktails WHERE name LIKE CONCAT('%', ?, '%') LIMIT ? OFFSET ?`
+//	rows, err := db.DB.QueryContext(ctx, query, keyword, limit, offset)
+//	if err != nil {
+//		return CocktailsDetail{}, err
+//	}
+//	if err := rows.Err(); err != nil {
+//		return CocktailsDetail{}, err
+//	}
+//	defer rows.Close()
+//
+//	var cocktails []Cocktail
+//	for rows.Next() {
+//		nc := NullableCocktail{}
+//		if err := rows.Scan(&nc.ID, &nc.Name, &nc.ImageURL, &nc.CreatedAt, &nc.UpdatedAt); err != nil {
+//			return CocktailsDetail{}, err
+//		}
+//
+//		c := Cocktail{
+//			ID:        nc.ID,
+//			Name:      nc.Name,
+//			ImageURL:  nc.ImageURL.String,
+//			CreatedAt: nc.CreatedAt,
+//			UpdatedAt: nc.CreatedAt,
+//		}
+//		cocktails = append(cocktails, c)
+//	}
+//
+//	if len(cocktails) == 0 {
+//		return []Cocktail{}, nil
+//	}
+//}
+
 func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams) (*CocktailsDetail, error) {
 	log.Printf("create cocktails...")
 
@@ -98,32 +132,36 @@ func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams)
 
 	materials := []Material{}
 
-	materialSelectQuery := `SELECT id FROM materials WHERE name=?`
+	materialSelectQuery := `SELECT EXISTS (SELECT * FROM materials WHERE materials.name = ?)`
 	materialInsertQuery := `INSERT INTO materials (name, created_at, updated_at) VALUES (?, ?, ?)`
 	cocktailMaterialQuery := `INSERT INTO cocktail_materials (cocktail_id, material_id, quantity, unit) VALUES (?, ?, ?, ?)`
 	for _, m := range params.Materials {
+		log.Printf(m.Name)
 		rows, err := db.DB.QueryContext(ctx, materialSelectQuery, m.Name)
-
-		if db.IsNoRows(err) {
-			rows, err = db.DB.QueryContext(ctx, materialInsertQuery, m.Name, now, now)
-			if err != nil {
-				fmt.Println(err)
-			}
+		if err != nil {
+			log.Println(err)
 		}
-
-		var materialID int64
 
 		defer rows.Close()
 
+		var recordCount int64
+		var materialID int64
 		for rows.Next() {
-			err := rows.Scan(&materialID)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
+			err := rows.Scan(&recordCount)
+			log.Println(recordCount)
+			if recordCount == 0 {
+				res, err = db.DB.ExecContext(ctx, materialInsertQuery, m.Name, now, now)
+				if err != nil {
+					tx.Rollback()
+					log.Printf("failed to create message. err: %v", err)
+					return nil, err
+				}
 
-		if err != nil {
-			fmt.Println(err)
+				materialID, err = res.LastInsertId()
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 
 		_, err = db.DB.ExecContext(ctx, cocktailMaterialQuery, cocktailID, materialID, m.Quantity.Quantity, m.Quantity.Unit)
