@@ -2,6 +2,7 @@ package cocktail
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/shake551/cocktails-api/db"
 	"log"
@@ -32,12 +33,15 @@ func NewCocktailsRepository() Repository {
 func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]Cocktail, error) {
 	log.Printf("get cocktails with limit...")
 
-	query := `SELECT * FROM cocktails LIMIT ? OFFSET ?`
-	rows, err := db.DB.QueryContext(ctx, query, limit, offset)
+	var rows *sql.Rows
+	var err error
 
 	if keyword != "" {
-		query = `SELECT * FROM cocktails WHERE name LIKE CONCAT('%', ?, '%') LIMIT ? OFFSET ?`
+		query := `SELECT * FROM cocktails WHERE name LIKE CONCAT('%', ?, '%') LIMIT ? OFFSET ?`
 		rows, err = db.DB.QueryContext(ctx, query, keyword, limit, offset)
+	} else {
+		query := `SELECT * FROM cocktails LIMIT ? OFFSET ?`
+		rows, err = db.DB.QueryContext(ctx, query, limit, offset)
 	}
 	if err != nil {
 		return nil, err
