@@ -3,12 +3,11 @@ package cocktail
 import "database/sql"
 
 type Cocktail struct {
-	ID        int64      `json:"id"`
-	Name      string     `json:"name"`
-	ImageURL  string     `json:"image_url"`
-	CreatedAt int64      `json:"created_at"`
-	UpdatedAt int64      `json:"updated_at"`
-	Materials []Material `json:"materials"`
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	ImageURL  string `json:"image_url"`
+	CreatedAt int64  `json:"created_at"`
+	UpdatedAt int64  `json:"updated_at"`
 }
 
 type NullableCocktail struct {
@@ -17,7 +16,15 @@ type NullableCocktail struct {
 	ImageURL  sql.NullString
 	CreatedAt int64
 	UpdatedAt int64
-	Materials []Material
+}
+
+type CocktailsDetail struct {
+	ID        int64      `json:"id"`
+	Name      string     `json:"name"`
+	ImageURL  string     `json:"image_url"`
+	Materials []Material `json:"materials"`
+	CreatedAt int64      `json:"created_at"`
+	UpdatedAt int64      `json:"updated_at"`
 }
 
 type Material struct {

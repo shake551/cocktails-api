@@ -10,7 +10,7 @@ import (
 
 type Repository interface {
 	GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]Cocktail, error)
-	Create(ctx context.Context, params CocktailsParams) (*Cocktail, error)
+	Create(ctx context.Context, params CocktailsParams) (*CocktailsDetail, error)
 }
 
 type CocktailsParams struct {
@@ -58,7 +58,6 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 			ID:        nc.ID,
 			Name:      nc.Name,
 			ImageURL:  nc.ImageURL.String,
-			Materials: nc.Materials,
 			CreatedAt: nc.CreatedAt,
 			UpdatedAt: nc.CreatedAt,
 		}
@@ -72,7 +71,7 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 	return cocktails, nil
 }
 
-func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams) (*Cocktail, error) {
+func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams) (*CocktailsDetail, error) {
 	log.Printf("create cocktails...")
 
 	tx, err := db.DB.BeginTx(ctx, nil)
@@ -143,7 +142,7 @@ func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams)
 		return nil, err
 	}
 
-	return &Cocktail{
+	return &CocktailsDetail{
 		ID:        cocktailID,
 		Name:      params.Name,
 		Materials: materials,
