@@ -37,7 +37,6 @@ paths:
           "schema":
             "$ref": "#/definitions/CocktailsListResponse"
 
-  /cocktal/create:
     post:
       tags:
         - "cocktails"
@@ -60,7 +59,7 @@ paths:
           "schema":
             "$ref": "#/definitions/CocktailCreateRequest"
 
-  /cocktail/get/{id}:
+  /cocktails/{id}:
     get:
       tags:
         - "cocktails"
