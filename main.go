@@ -67,6 +67,7 @@ func createRouter() chi.Router {
 			w.WriteHeader(http.StatusOK)
 		})
 
+		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", cocktail.FindCocktailsDetailByID)
 		mux.MethodFunc("GET", "/cocktails", cocktail.GetCocktailsHandler)
 		mux.MethodFunc("POST", "/cocktails", cocktail.PostCocktailsHandler)
 	})

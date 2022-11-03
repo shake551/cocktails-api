@@ -2,6 +2,7 @@ package cocktail
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 	"strconv"
@@ -49,6 +50,33 @@ func GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, err := json.Marshal(cocktails)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+func FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "cocktailsID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	cocktailsDetail, err := cr.FindCocktailsDetailByID(r.Context(), id)
+	if err != nil {
+		log.Printf("failed to get cocktails detail. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(cocktailsDetail)
 	if err != nil {
 		log.Printf("failed to parse json. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
