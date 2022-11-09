@@ -2,6 +2,7 @@ package cocktail
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
 	"log"
 	"net/http"
@@ -90,8 +91,18 @@ func FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request) {
 }
 
 type PostCocktailsBody struct {
-	Name      string           `json:"name"`
-	Materials []MaterialParams `json:"materials"`
+	Name      string                  `json:"name"`
+	Materials []PostCocktailsMaterial `json:"materials"`
+}
+
+type PostCocktailsMaterial struct {
+	Name     string                `json:"name"`
+	Quantity PostCocktailsQuantity `json:"quantity"`
+}
+
+type PostCocktailsQuantity struct {
+	Quantity json.Number `json:"quantity"`
+	Unit     string      `json:"unit"`
 }
 
 func PostCocktailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,9 +113,21 @@ func PostCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var materials []MaterialParams
+	for _, material := range body.Materials {
+		quantity, err := material.Quantity.Quantity.Int64()
+		if err != nil {
+			fmt.Println(err)
+		}
+		materials = append(materials, MaterialParams{Name: material.Name, Quantity: MaterialQuantity{
+			Quantity: quantity,
+			Unit:     material.Quantity.Unit,
+		}})
+	}
+
 	params := CocktailsParams{
 		Name:      body.Name,
-		Materials: body.Materials,
+		Materials: materials,
 	}
 
 	coc, err := cr.Create(r.Context(), params)
