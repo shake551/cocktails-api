@@ -105,6 +105,31 @@ paths:
           description: "A successful response."
           schema:
             $ref: "#/definitions/Shop"
+    get:
+      tags:
+        - "shop"
+      summary: "ショップ一覧取得API"
+      description: "ショップ一覧の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: "offset"
+          description: "オフセット"
+          type: "integer"
+          required: false
+        - in: query
+          name: "limit"
+          description: "最大取得件数"
+          type: "integer"
+          required: false
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopListResponse"
 
   /shop/{id}:
     get:
@@ -313,6 +338,10 @@ definitions:
       name:
         type: string
         description: "ショップ名"
+  ShopListResponse:
+    type: array
+    items:
+      $ref: "#/definitions/Shop"
   ShopRequestBody:
     type: object
     properties:
