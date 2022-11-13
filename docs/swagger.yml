@@ -174,6 +174,31 @@ paths:
           description: "A successful response."
           schema:
             $ref: "#/definitions/ShopTable"
+    get:
+      tags:
+        - "shop"
+      summary: "テーブル一覧取得API"
+      description: "テーブル一覧の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: "offset"
+          description: "オフセット"
+          type: "integer"
+          required: false
+        - in: query
+          name: "limit"
+          description: "最大取得件数"
+          type: "integer"
+          required: false
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopTableListResponse"
 
   /shop/{shop_id}/table/{table_id}:
     get:
@@ -357,6 +382,10 @@ definitions:
       shop_id:
         type: integer
         description: "ショップID"
+  ShopTableListResponse:
+    type: array
+    items:
+      $ref: "#/definitions/ShopTable"
   ShopOrder:
     type: object
     properties:
