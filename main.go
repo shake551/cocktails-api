@@ -73,6 +73,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("POST", "/cocktails", cocktail.PostCocktailsHandler)
 
 		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
+		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
 	})
 
 	return mux
