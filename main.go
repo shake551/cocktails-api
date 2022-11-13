@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/shake551/cocktails-api/cocktail"
+	"github.com/shake551/cocktails-api/shop"
 	"log"
 	"mime"
 	"net"
@@ -70,6 +71,8 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", cocktail.FindCocktailsDetailByID)
 		mux.MethodFunc("GET", "/cocktails", cocktail.GetCocktailsHandler)
 		mux.MethodFunc("POST", "/cocktails", cocktail.PostCocktailsHandler)
+
+		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
 	})
 
 	return mux
