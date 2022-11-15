@@ -7,6 +7,8 @@ host: "localhost:8080"
 tags:
   - name: "cocktails"
     description: "カクテル関連API"
+  - name: "shop"
+    description: "ショップ関連API"
 schemes:
   - "http"
 paths:
@@ -81,6 +83,208 @@ paths:
           "schema":
             "$ref": "#/definitions/CocktailResponse"
 
+  /shop:
+    post:
+      tags:
+        - "shop"
+      summary: "ショップ登録API"
+      description: "ショップの登録\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: body
+          name: "body"
+          description: "Request Body"
+          required: true
+          schema:
+            $ref: "#/definitions/ShopRequestBody"
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/Shop"
+    get:
+      tags:
+        - "shop"
+      summary: "ショップ一覧取得API"
+      description: "ショップ一覧の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: "offset"
+          description: "オフセット"
+          type: "integer"
+          required: false
+        - in: query
+          name: "limit"
+          description: "最大取得件数"
+          type: "integer"
+          required: false
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopListResponse"
+
+  /shop/{id}:
+    get:
+      tags:
+        - "shop"
+      summary: "ショップ情報取得API"
+      description: "ショップ情報の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: id
+          description: "ショップID"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/Shop"
+
+  /shop/{id}/table:
+    post:
+      tags:
+        - "shop"
+      summary: "テーブル登録API"
+      description: "ショップのテーブル登録\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: id
+          description: "ショップID"
+          type: integer
+          required: true
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopTable"
+    get:
+      tags:
+        - "shop"
+      summary: "テーブル一覧取得API"
+      description: "テーブル一覧の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: "offset"
+          description: "オフセット"
+          type: "integer"
+          required: false
+        - in: query
+          name: "limit"
+          description: "最大取得件数"
+          type: "integer"
+          required: false
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopTableListResponse"
+
+  /shop/{shop_id}/table/{table_id}:
+    get:
+      tags:
+        - "shop"
+      summary: "テーブル情報取得API"
+      description: "テーブル情報の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: path
+          name: table_id
+          description: "テーブルID"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopTable"
+
+  /shop/{shop_id}/table/{table_id}/order:
+    post:
+      tags:
+        - "shop"
+      summary: "注文API"
+      description: "注文\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: path
+          name: table_id
+          description: "テーブルID"
+          type: integer
+          required: true
+        - in: body
+          name: "body"
+          description: "Request Body"
+          required: true
+          schema:
+            $ref: "#/definitions/ShopOrderRequest"
+      responses:
+        201:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopOrder"
+    get:
+      tags:
+        - "shop"
+      summary: "注文情報取得API"
+      description: "注文情報の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: path
+          name: table_id
+          description: "テーブルID"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/ShopTable"
+
 definitions:
   CocktailsListResponse:
     type: "object"
@@ -149,3 +353,59 @@ definitions:
       quantity:
         type: object
         $ref: "#/definitions/MaterialQuantity"
+
+  Shop:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: "ショップID"
+      name:
+        type: string
+        description: "ショップ名"
+  ShopListResponse:
+    type: array
+    items:
+      $ref: "#/definitions/Shop"
+  ShopRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "ショップ名"
+  ShopTable:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: "テーブルID"
+      shop_id:
+        type: integer
+        description: "ショップID"
+  ShopTableListResponse:
+    type: array
+    items:
+      $ref: "#/definitions/ShopTable"
+  ShopOrder:
+    type: object
+    properties:
+      id:
+        type: integer
+        description: "注文ID"
+      table_id:
+        type: integer
+        description: "テーブルID"
+      cocktail:
+        type: object
+        $ref: "#/definitions/CocktailResponse"
+  ShopOrderRequest:
+    type: object
+    properties:
+      cocktail_ids:
+        type: array
+        description: "カクテルIDリスト"
+        items:
+          properties:
+            cocktail_id:
+              type: integer
+              description: "カクテルID"
