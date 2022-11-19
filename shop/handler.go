@@ -2,6 +2,7 @@ package shop
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi"
 	"log"
 	"net/http"
 	"strconv"
@@ -47,6 +48,33 @@ func GetShopsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, err := json.Marshal(shops)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+func FindByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	cocktailsDetail, err := sr.FindByID(r.Context(), id)
+	if err != nil {
+		log.Printf("failed to get shop with id. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(cocktailsDetail)
 	if err != nil {
 		log.Printf("failed to parse json. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

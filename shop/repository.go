@@ -8,6 +8,7 @@ import (
 
 type Repository interface {
 	GetLimit(ctx context.Context, limit int64, offset int64) ([]Shop, error)
+	FindByID(ctx context.Context, id int64) (Shop, error)
 	Create(ctx context.Context, params ShopParams) (*Shop, error)
 }
 
@@ -45,6 +46,30 @@ func (r ShopRepository) GetLimit(ctx context.Context, limit int64, offset int64)
 	}
 
 	return shops, nil
+}
+
+func (r ShopRepository) FindByID(ctx context.Context, id int64) (Shop, error) {
+	log.Println("find shop with shop id ...")
+
+	query := `SELECT * FROM shops WHERE id = ?`
+	rows, err := db.DB.QueryContext(ctx, query, id)
+	if db.IsNoRows(err) {
+		return Shop{}, err
+	}
+	if err != nil {
+		return Shop{}, err
+	}
+
+	defer rows.Close()
+
+	s := Shop{}
+	for rows.Next() {
+		if err := rows.Scan(&s.ID, &s.Name); err != nil {
+			return Shop{}, err
+		}
+	}
+
+	return s, nil
 }
 
 func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*Shop, error) {
