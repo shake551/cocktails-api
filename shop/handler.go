@@ -140,3 +140,36 @@ func CreateShopTableHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write(b)
 }
+
+func AddShopCocktailHandler(w http.ResponseWriter, r *http.Request) {
+	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	body := ShopCocktailParams{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("bad request error. err: %v, body:%v", err, body)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	c, err := sr.AddShopCocktails(r.Context(), shopID, body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(c)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusCreated)
+	w.Write(b)
+}
