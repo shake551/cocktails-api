@@ -11,6 +11,7 @@ type Repository interface {
 	FindByID(ctx context.Context, id int64) (Shop, error)
 	Create(ctx context.Context, params ShopParams) (*Shop, error)
 	CreateTable(ctx context.Context, shopID int64) (*Table, error)
+	GetTable(ctx context.Context, shopID int64, tableID int64) (*Table, error)
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error)
@@ -118,6 +119,29 @@ func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*Table, 
 	}
 
 	return &Table{ID: tableID, ShopID: shopID}, nil
+}
+
+func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int64) (*Table, error) {
+	log.Printf("get table ... shopID: %d, tabelID: %d \n", shopID, tableID)
+
+	q := `SELECT * FROM shop_tables WHERE id=? AND shop_id=?`
+	rows, err := db.DB.QueryContext(ctx, q, tableID, shopID)
+	if db.IsNoRows(err) {
+		return &Table{}, nil
+	}
+	if err != nil {
+		return &Table{}, err
+	}
+
+	defer rows.Close()
+
+	var t Table
+	for rows.Next() {
+		if err := rows.Scan(&t.ID, &t.ShopID); err != nil {
+			return &Table{}, err
+		}
+	}
+	return &t, nil
 }
 
 func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error) {
