@@ -264,8 +264,49 @@ paths:
           description: "A successful response."
           schema:
             $ref: "#/definitions/ShopOrder"
+    get:
+      tags:
+        - "shop"
+      summary: "注文情報取得API"
+      description: "注文情報の取得\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: path
+          name: table_id
+          description: "テーブルID"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "A successful response."
+          schema:
+            $ref: "#/definitions/CocktailList"
 
 definitions:
+  Cocktail:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "カクテル名"
+      image_url:
+        type: string
+        description: "画像URL"
+  CocktailList:
+    type: object
+    properties:
+      cocktails:
+        type: array
+        items:
+          $ref: "#/definitions/Cocktail"
   CocktailsListResponse:
     type: "object"
     properties:
