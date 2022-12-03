@@ -1,5 +1,7 @@
 package shop
 
+import "database/sql"
+
 type Shop struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
@@ -19,4 +21,14 @@ type Order struct {
 	ID             int64 `json:"id"`
 	TableID        int64 `json:"table_id"`
 	ShopCocktailID int64 `json:"shop_cocktail_id"`
+}
+
+type TableOrder struct {
+	Name     string `json:"name"`
+	ImageURL string `json:"image_url"`
+}
+
+type NullableTableOrder struct {
+	Name     string
+	ImageURL sql.NullString
 }

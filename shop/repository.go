@@ -13,6 +13,7 @@ type Repository interface {
 	CreateTable(ctx context.Context, shopID int64) (*Table, error)
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
+	GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error)
 }
 
 type ShopParams struct {
@@ -201,6 +202,49 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 
 	if err := tx.Commit(); err != nil {
 		return nil, err
+	}
+
+	return orders, nil
+}
+
+func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error) {
+	log.Printf("get table order list ... shopID: %d, tableID: %d \n", shopID, tableID)
+
+	q := `SELECT 
+			cocktails.name,
+			cocktails.image_url
+		FROM shop_tables
+			INNER JOIN shop_orders
+			INNER JOIN cocktails
+		WHERE shop_id=?
+			AND shop_tables.id=? 
+			AND shop_tables.id = shop_orders.table_id
+			AND cocktails.id = shop_orders.shop_cocktail_id`
+
+	rows, err := db.DB.QueryContext(ctx, q, shopID, tableID)
+	if db.IsNoRows(err) {
+		return []*TableOrder{}, err
+	}
+	if err != nil {
+		return []*TableOrder{}, err
+	}
+
+	defer rows.Close()
+	var orders []*TableOrder
+	for rows.Next() {
+		no := NullableTableOrder{}
+		if err := rows.Scan(&no.Name, &no.ImageURL); err != nil {
+			return nil, err
+		}
+
+		to := &TableOrder{
+			Name:     no.Name,
+			ImageURL: no.ImageURL.String,
+		}
+		orders = append(orders, to)
+	}
+	if len(orders) == 0 {
+		return []*TableOrder{}, nil
 	}
 
 	return orders, nil
