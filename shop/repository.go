@@ -42,6 +42,8 @@ func (r ShopRepository) GetLimit(ctx context.Context, limit int64, offset int64)
 		return nil, err
 	}
 
+	defer rows.Close()
+
 	var shops []Shop
 	for rows.Next() {
 		s := Shop{}
