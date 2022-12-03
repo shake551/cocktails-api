@@ -58,3 +58,31 @@ func GetShopsHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(b)
 }
+
+func PostShopHandler(w http.ResponseWriter, r *http.Request) {
+	body := ShopParams{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("bad request error. err: %v, body:%v", err, body)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	s, err := sr.Create(r.Context(), body)
+	if err != nil {
+		log.Printf("failed to create shop. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(s)
+	if err != nil {
+		log.Printf("failed to parse json")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}

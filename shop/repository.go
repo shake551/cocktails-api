@@ -8,6 +8,11 @@ import (
 
 type Repository interface {
 	GetLimit(ctx context.Context, limit int64, offset int64) ([]Shop, error)
+	Create(ctx context.Context, params ShopParams) (*Shop, error)
+}
+
+type ShopParams struct {
+	Name string `json:"name"`
 }
 
 type ShopRepository struct{}
@@ -40,4 +45,21 @@ func (r ShopRepository) GetLimit(ctx context.Context, limit int64, offset int64)
 	}
 
 	return shops, nil
+}
+
+func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*Shop, error) {
+	log.Println("create shop...")
+
+	query := `INSERT INTO shops (name) VALUES (?)`
+	res, err := db.DB.ExecContext(ctx, query, params.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	shopID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Shop{ID: shopID, Name: params.Name}, nil
 }
