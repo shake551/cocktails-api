@@ -12,6 +12,7 @@ type Repository interface {
 	Create(ctx context.Context, params ShopParams) (*Shop, error)
 	CreateTable(ctx context.Context, shopID int64) (*Table, error)
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error)
+	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
 }
 
 type ShopParams struct {
@@ -19,6 +20,10 @@ type ShopParams struct {
 }
 
 type ShopCocktailParams struct {
+	CocktailIDs []int64 `json:"cocktail_ids"`
+}
+
+type OrderParams struct {
 	CocktailIDs []int64 `json:"cocktail_ids"`
 }
 
@@ -152,4 +157,51 @@ func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, para
 	}
 
 	return cocktails, nil
+}
+
+func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error) {
+	log.Printf("receive order... shop_id: %d, table_id: %d \n", shopID, tableID)
+
+	tx, err := db.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var orders []*Order
+
+	findCocktailQuery := `SELECT * FROM shop_cocktails WHERE shop_id=? AND cocktail_id=?`
+	orderQuery := `INSERT INTO shop_orders (table_id, shop_cocktail_id) VALUES (?, ?)`
+	for _, cID := range params.CocktailIDs {
+		_, err := db.DB.QueryContext(ctx, findCocktailQuery, shopID, cID)
+		if db.IsNoRows(err) {
+			tx.Rollback()
+			log.Printf("does not exist shop_cocktails. shop_id: %d, cocktail_id: %d \n", shopID, cID)
+			return nil, err
+		}
+		if err != nil {
+			tx.Rollback()
+			log.Printf("cannot find shop_cocktails. shop_id: %d, cocktail_id: %d\n", shopID, cID)
+			return nil, err
+		}
+
+		res, err := db.DB.ExecContext(ctx, orderQuery, tableID, cID)
+		if err != nil {
+			tx.Rollback()
+			log.Printf("fail create order. shop_id: %d, table_id: %d, cocktail_id: %d", shopID, tableID, cID)
+			return nil, err
+		}
+
+		orderID, err := res.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, &Order{ID: orderID, TableID: tableID, ShopCocktailID: cID})
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }
