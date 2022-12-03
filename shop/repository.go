@@ -10,6 +10,7 @@ type Repository interface {
 	GetLimit(ctx context.Context, limit int64, offset int64) ([]Shop, error)
 	FindByID(ctx context.Context, id int64) (Shop, error)
 	Create(ctx context.Context, params ShopParams) (*Shop, error)
+	CreateTable(ctx context.Context, shopID int64) (*Table, error)
 }
 
 type ShopParams struct {
@@ -87,4 +88,21 @@ func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*Shop, e
 	}
 
 	return &Shop{ID: shopID, Name: params.Name}, nil
+}
+
+func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*Table, error) {
+	log.Println("create shop table ...")
+
+	query := `INSERT INTO shop_tables (shop_id) VALUES (?)`
+	res, err := db.DB.ExecContext(ctx, query, shopID)
+	if err != nil {
+		return nil, err
+	}
+
+	tableID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Table{ID: tableID, ShopID: shopID}, nil
 }
