@@ -21,6 +21,8 @@ type Order struct {
 	ID             int64 `json:"id"`
 	TableID        int64 `json:"table_id"`
 	ShopCocktailID int64 `json:"shop_cocktail_id"`
+	CreatedAt      int64 `json:"created_at"`
+	UpdatedAt      int64 `json:"updated_at"`
 }
 
 type TableOrder struct {

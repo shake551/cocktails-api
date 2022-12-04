@@ -44,5 +44,7 @@ CREATE TABLE IF NOT EXISTS shop_orders (
     id INTEGER UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     table_id INTEGER NOT NULL,
     shop_cocktail_id INTEGER NOT NULL,
-    is_provided bool DEFAULT false
+    is_provided bool DEFAULT false,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/shake551/cocktails-api/db"
 	"log"
+	"time"
 )
 
 type Repository interface {
@@ -196,8 +197,10 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 
 	var orders []*Order
 
+	now := time.Now().Unix()
+
 	findCocktailQuery := `SELECT * FROM shop_cocktails WHERE shop_id=? AND cocktail_id=?`
-	orderQuery := `INSERT INTO shop_orders (table_id, shop_cocktail_id) VALUES (?, ?)`
+	orderQuery := `INSERT INTO shop_orders (table_id, shop_cocktail_id, created_at, updated_at) VALUES (?, ?, ?, ?)`
 	for _, cID := range params.CocktailIDs {
 		_, err := db.DB.QueryContext(ctx, findCocktailQuery, shopID, cID)
 		if db.IsNoRows(err) {
@@ -211,7 +214,7 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 			return nil, err
 		}
 
-		res, err := db.DB.ExecContext(ctx, orderQuery, tableID, cID)
+		res, err := db.DB.ExecContext(ctx, orderQuery, tableID, cID, now, now)
 		if err != nil {
 			tx.Rollback()
 			log.Printf("fail create order. shop_id: %d, table_id: %d, cocktail_id: %d", shopID, tableID, cID)
@@ -223,7 +226,7 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 			return nil, err
 		}
 
-		orders = append(orders, &Order{ID: orderID, TableID: tableID, ShopCocktailID: cID})
+		orders = append(orders, &Order{ID: orderID, TableID: tableID, ShopCocktailID: cID, CreatedAt: now, UpdatedAt: now})
 	}
 
 	if err := tx.Commit(); err != nil {
