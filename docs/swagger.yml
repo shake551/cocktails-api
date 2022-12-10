@@ -290,6 +290,36 @@ paths:
           schema:
             $ref: "#/definitions/CocktailList"
 
+  /shop/{shop_id}/table/{table_id}/order/{order_id}:
+    put:
+      tags:
+        - "shop"
+      summary: "注文提供API"
+      description: "注文を提供済みにする\n"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: path
+          name: table_id
+          description: "テーブルID"
+          type: integer
+          required: true
+        - in: path
+          name: order_id
+          description: "注文ID"
+          type: integer
+          required: true
+      responses:
+        200:
+          description: "A successful response."
+
 definitions:
   Cocktail:
     type: object
