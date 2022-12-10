@@ -80,6 +80,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", shop.GetTableHandler)
 		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}/order", shop.GetTableOrderListHandler)
 		mux.MethodFunc("POST", "/shop/{shopID}/table/{tableID}/order", shop.OrderHandler)
+		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", shop.OrderProvide)
 	})
 
 	return mux
