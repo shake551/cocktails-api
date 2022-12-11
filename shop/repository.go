@@ -17,6 +17,7 @@ type Repository interface {
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error)
+	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error)
 }
 
 type ShopParams struct {
@@ -277,6 +278,45 @@ func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tab
 	if db.IsNoRows(err) {
 		return []*TableOrder{}, err
 	}
+	if err != nil {
+		return []*TableOrder{}, err
+	}
+
+	defer rows.Close()
+	var orders []*TableOrder
+	for rows.Next() {
+		no := NullableTableOrder{}
+		if err := rows.Scan(&no.Name, &no.ImageURL); err != nil {
+			return nil, err
+		}
+
+		to := &TableOrder{
+			Name:     no.Name,
+			ImageURL: no.ImageURL.String,
+		}
+		orders = append(orders, to)
+	}
+	if len(orders) == 0 {
+		return []*TableOrder{}, nil
+	}
+
+	return orders, nil
+}
+
+func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error) {
+	log.Printf("get shop unprovided prder list ... shopID: %d \n", shopID)
+
+	q := `SELECT 
+			cocktails.name,
+			cocktails.image_url
+		FROM shop_tables
+			INNER JOIN shop_orders
+			INNER JOIN cocktails
+		WHERE shop_id=?
+			AND cocktails.id = shop_orders.shop_cocktail_id
+		LIMIT ? OFFSET ?`
+
+	rows, err := db.DB.QueryContext(ctx, q, shopID, limit, offset)
 	if err != nil {
 		return []*TableOrder{}, err
 	}
