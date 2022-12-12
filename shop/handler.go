@@ -287,7 +287,19 @@ func GetTableOrderListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	os, err := sr.GetTableOrderList(r.Context(), shopID, tableID)
+	v := r.URL.Query()
+
+	var unprovided bool
+	if v.Get("unprovided") != "" {
+		unprovided, err = strconv.ParseBool(v.Get("unprovided"))
+		if err != nil {
+			log.Printf("bad request error. err: %v, param:%v", err, v.Get("unprovided"))
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+	}
+
+	os, err := sr.GetTableOrderList(r.Context(), shopID, tableID, unprovided)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
