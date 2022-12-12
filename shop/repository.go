@@ -16,7 +16,7 @@ type Repository interface {
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
-	GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error)
+	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*TableOrder, error)
 	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error)
 }
 
@@ -260,7 +260,7 @@ func (r ShopRepository) OrderProvide(ctx context.Context, shopID int64, tableID 
 	return err
 }
 
-func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64) ([]*TableOrder, error) {
+func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*TableOrder, error) {
 	log.Printf("get table order list ... shopID: %d, tableID: %d \n", shopID, tableID)
 
 	q := `SELECT 
@@ -272,9 +272,15 @@ func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tab
 		WHERE shop_id=?
 			AND shop_tables.id=? 
 			AND shop_tables.id = shop_orders.table_id
-			AND cocktails.id = shop_orders.shop_cocktail_id`
+			AND cocktails.id = shop_orders.shop_cocktail_id
+			AND shop_orders.is_provided LIKE CONCAT('%', ?, '%')`
 
-	rows, err := db.DB.QueryContext(ctx, q, shopID, tableID)
+	var isProvided string
+	if unprovided {
+		isProvided = "1"
+	}
+
+	rows, err := db.DB.QueryContext(ctx, q, shopID, tableID, isProvided)
 	if db.IsNoRows(err) {
 		return []*TableOrder{}, err
 	}

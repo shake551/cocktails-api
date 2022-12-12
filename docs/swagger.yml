@@ -321,6 +321,11 @@ paths:
           description: "テーブルID"
           type: integer
           required: true
+        - in: query
+          name: unprovided
+          description: "未提供の注文を取得するフラグ"
+          type: boolean
+          required: false
       responses:
         200:
           description: "A successful response."
