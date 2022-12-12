@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/shake551/cocktails-api/cocktail"
+	"github.com/shake551/cocktails-api/shop"
 	"log"
 	"mime"
 	"net"
@@ -70,6 +71,17 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", cocktail.FindCocktailsDetailByID)
 		mux.MethodFunc("GET", "/cocktails", cocktail.GetCocktailsHandler)
 		mux.MethodFunc("POST", "/cocktails", cocktail.PostCocktailsHandler)
+
+		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
+		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
+		mux.MethodFunc("GET", "/shop/{shopID}", shop.FindByIDHandler)
+		mux.MethodFunc("POST", "/shop/{shopID}/cocktail", shop.AddShopCocktailHandler)
+		mux.MethodFunc("POST", "/shop/{shopID}/table", shop.CreateShopTableHandler)
+		mux.MethodFunc("GET", "/shop/{shopID}/order", shop.GetShopUnprovidedOrderList)
+		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", shop.GetTableHandler)
+		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}/order", shop.GetTableOrderListHandler)
+		mux.MethodFunc("POST", "/shop/{shopID}/table/{tableID}/order", shop.OrderHandler)
+		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", shop.OrderProvide)
 	})
 
 	return mux
