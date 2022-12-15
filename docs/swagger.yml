@@ -153,6 +153,69 @@ paths:
           schema:
             $ref: "#/definitions/Shop"
 
+  /shop/{shop_id}/cocktail:
+    get:
+      tags:
+        - "shop"
+      summary: "ショップのカクテルリスト取得API"
+      description: "ショップのカクテルリストを取得する"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: query
+          name: offset
+          description: "オフセット"
+          type: integer
+          required: false
+        - in: query
+          name: limit
+          description: "最大取得件数"
+          type: integer
+          required: false
+      responses:
+        200:
+          "description": "A successful response."
+          "schema":
+            "$ref": "#/definitions/CocktailsListResponse"
+    post:
+      tags:
+        - "shop"
+      summary: "ショップのカクテル登録API"
+      description: "ショップのカクテルを登録する"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: shop_id
+          description: "ショップID"
+          type: integer
+          required: true
+        - in: body
+          name: body
+          description: "Request Body"
+          required: true
+          schema:
+            type: object
+            properties:
+              ids:
+                type: array
+                items:
+                  type: integer
+      responses:
+        200:
+          "description": "A successful response."
+          "schema":
+            "$ref": "#/definitions/CocktailsListResponse"
+
   /shop/{id}/table:
     post:
       tags:
@@ -502,3 +565,16 @@ definitions:
             cocktail_id:
               type: integer
               description: "カクテルID"
+  ShopCocktails:
+    type: object
+    properties:
+      shop_id:
+        type: integer
+        description: "ショップID"
+      cocktail_id:
+        type: integer
+        description: "カクテルID"
+  ShopCocktailsResponse:
+    type: array
+    items:
+      $ref: "#/definitions/ShopCocktails"
