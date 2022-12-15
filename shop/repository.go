@@ -2,6 +2,7 @@ package shop
 
 import (
 	"context"
+	"github.com/shake551/cocktails-api/cocktail"
 	"github.com/shake551/cocktails-api/db"
 	"log"
 	"time"
@@ -18,6 +19,7 @@ type Repository interface {
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*TableOrder, error)
 	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error)
+	GetShopCocktailsList(ctx context.Context, shopID int64, limit int64, offset int64) ([]cocktail.Cocktail, error)
 }
 
 type ShopParams struct {
@@ -346,4 +348,47 @@ func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID i
 	}
 
 	return orders, nil
+}
+
+func (r ShopRepository) GetShopCocktailsList(ctx context.Context, shopID int64, limit int64, offset int64) ([]cocktail.Cocktail, error) {
+	log.Printf("get shop cocktail list ... %d \n", shopID)
+
+	q := `SELECT
+    		cocktails.*
+		FROM 
+		    cocktails
+		    INNER JOIN shop_cocktails
+		WHERE shop_cocktails.shop_id = ? 
+		    AND shop_cocktails.cocktail_id = cocktails.id
+		LIMIT ? OFFSET ?`
+
+	rows, err := db.DB.QueryContext(ctx, q, shopID, limit, offset)
+	if err != nil {
+		log.Println(err)
+		return []cocktail.Cocktail{}, err
+	}
+
+	defer rows.Close()
+	var cocktails []cocktail.Cocktail
+	for rows.Next() {
+		nc := cocktail.NullableCocktail{}
+		if err := rows.Scan(&nc.ID, &nc.Name, &nc.ImageURL, &nc.CreatedAt, &nc.UpdatedAt); err != nil {
+			log.Println(err)
+			return []cocktail.Cocktail{}, err
+		}
+
+		c := cocktail.Cocktail{
+			ID:        nc.ID,
+			Name:      nc.Name,
+			ImageURL:  nc.ImageURL.String,
+			CreatedAt: nc.CreatedAt,
+			UpdatedAt: nc.UpdatedAt,
+		}
+		cocktails = append(cocktails, c)
+	}
+
+	if len(cocktails) == 0 {
+		return []cocktail.Cocktail{}, nil
+	}
+	return cocktails, nil
 }
