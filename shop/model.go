@@ -17,6 +17,28 @@ type ShopCocktail struct {
 	CocktailID int64 `json:"cocktail_id"`
 }
 
+type CocktailDetail struct {
+	ID        int64       `json:"id"`
+	Name      string      `json:"name"`
+	ImageURL  string      `json:"image_url"`
+	Materials []Materials `json:"materials"`
+	CreatedAt int64       `json:"created_at"`
+	UpdatedAt int64       `json:"updated_at"`
+}
+
+type Materials struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type NullableCocktailDetailRow struct {
+	ID           int64
+	Name         string
+	ImageURL     sql.NullString
+	MaterialID   int64
+	MaterialName string
+}
+
 type Order struct {
 	ID             int64 `json:"id"`
 	TableID        int64 `json:"table_id"`
