@@ -62,15 +62,17 @@ func createRouter() chi.Router {
 	mux.Use(middleware.RequestLogger(getAccessLogFormatter()))
 	mux.Use(contentTypeRestrictionMiddleware("application/json"))
 
+	ch := cocktail.NewCocktailsHandler()
+
 	// no auth
 	mux.Group(func(mux chi.Router) {
 		mux.MethodFunc("GET", "/health", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", cocktail.FindCocktailsDetailByID)
-		mux.MethodFunc("GET", "/cocktails", cocktail.GetCocktailsHandler)
-		mux.MethodFunc("POST", "/cocktails", cocktail.PostCocktailsHandler)
+		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.FindCocktailsDetailByID)
+		mux.MethodFunc("GET", "/cocktails", ch.GetCocktailsHandler)
+		mux.MethodFunc("POST", "/cocktails", ch.PostCocktailsHandler)
 
 		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
 		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)

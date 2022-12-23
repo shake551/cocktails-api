@@ -9,9 +9,21 @@ import (
 	"strconv"
 )
 
-var cr = NewCocktailsRepository()
+type Handler interface {
+	GetCocktailsHandler(w http.ResponseWriter, r *http.Request)
+	FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request)
+	PostCocktailsHandler(w http.ResponseWriter, r *http.Request)
+}
 
-func GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
+type CocktailsHandler struct {
+	r Repository
+}
+
+func NewCocktailsHandler() *CocktailsHandler {
+	return &CocktailsHandler{r: NewCocktailsRepository()}
+}
+
+func (h CocktailsHandler) GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 	if v == nil {
 		return
@@ -43,7 +55,7 @@ func GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var keyword = v.Get("keyword")
 
-	cocktails, err := cr.GetLimit(r.Context(), limit, offset, keyword)
+	cocktails, err := h.r.GetLimit(r.Context(), limit, offset, keyword)
 	if err != nil {
 		log.Printf("failed to get cocktails. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -63,14 +75,14 @@ func GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request) {
+func (h CocktailsHandler) FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "cocktailsID"), 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	cocktailsDetail, err := cr.FindCocktailsDetailByID(r.Context(), id)
+	cocktailsDetail, err := h.r.FindCocktailsDetailByID(r.Context(), id)
 	if err != nil {
 		log.Printf("failed to get cocktails detail. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -105,7 +117,7 @@ type PostCocktailsQuantity struct {
 	Unit     string      `json:"unit"`
 }
 
-func PostCocktailsHandler(w http.ResponseWriter, r *http.Request) {
+func (h CocktailsHandler) PostCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 	body := &PostCocktailsBody{}
 	if err := json.NewDecoder(r.Body).Decode(body); err != nil {
 		log.Printf("bad request error. err: %v, body: %v", err, body)
@@ -130,7 +142,7 @@ func PostCocktailsHandler(w http.ResponseWriter, r *http.Request) {
 		Materials: materials,
 	}
 
-	coc, err := cr.Create(r.Context(), params)
+	coc, err := h.r.Create(r.Context(), params)
 	if err != nil {
 		log.Printf("failed to create cocktail. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
