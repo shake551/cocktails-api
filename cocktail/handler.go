@@ -19,8 +19,8 @@ type CocktailsHandler struct {
 	r Repository
 }
 
-func NewCocktailsHandler() *CocktailsHandler {
-	return &CocktailsHandler{r: NewCocktailsRepository()}
+func NewCocktailsHandler(r Repository) *CocktailsHandler {
+	return &CocktailsHandler{r: r}
 }
 
 func (h CocktailsHandler) GetCocktailsHandler(w http.ResponseWriter, r *http.Request) {
