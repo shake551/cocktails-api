@@ -64,9 +64,6 @@ func createRouter() chi.Router {
 	mux.Use(middleware.RequestLogger(getAccessLogFormatter()))
 	mux.Use(contentTypeRestrictionMiddleware("application/json"))
 
-	//cr := cocktail.NewCocktailsRepository()
-	//ch := cocktail.NewCocktailsHandler(cr)
-
 	cr := datastore.NewCocktailRepository()
 	cu := usecase.NewCocktailUseCase(cr)
 	ch := handler.NewCocktailHandler(cu)
@@ -78,8 +75,8 @@ func createRouter() chi.Router {
 		})
 
 		mux.MethodFunc("GET", "/cocktails", ch.GetLimit)
+		mux.MethodFunc("POST", "/cocktails", ch.Create)
 		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.GetById)
-		//mux.MethodFunc("POST", "/cocktails", ch.PostCocktailsHandler)
 
 		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
 		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
