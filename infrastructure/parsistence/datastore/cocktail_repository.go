@@ -60,7 +60,7 @@ func (r CocktailRepository) GetLimit(ctx context.Context, limit int64, offset in
 	return cocktails, nil
 }
 
-func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.CocktailsDetail, error) {
+func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.CocktailDetail, error) {
 	log.Printf("get cocktails with cocktail id...")
 
 	query := `
@@ -82,10 +82,10 @@ func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.Cockta
 
 	rows, err := db.DB.QueryContext(ctx, query, id)
 	if db.IsNoRows(err) {
-		return model.CocktailsDetail{}, nil
+		return model.CocktailDetail{}, nil
 	}
 	if err != nil {
-		return model.CocktailsDetail{}, err
+		return model.CocktailDetail{}, err
 	}
 
 	defer rows.Close()
@@ -95,7 +95,7 @@ func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.Cockta
 	for rows.Next() {
 
 		if err := rows.Scan(&ncd.ID, &ncd.Name, &ncd.ImageURL, &ncd.MaterialID, &ncd.MaterialName, &ncd.Quantity, &ncd.Unit); err != nil {
-			return model.CocktailsDetail{}, err
+			return model.CocktailDetail{}, err
 		}
 
 		materials = append(materials, model.Material{
@@ -108,7 +108,7 @@ func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.Cockta
 		})
 	}
 
-	d := model.CocktailsDetail{
+	d := model.CocktailDetail{
 		ID:        ncd.ID,
 		Name:      ncd.Name,
 		ImageURL:  ncd.ImageURL.String,
@@ -118,7 +118,7 @@ func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.Cockta
 	return d, nil
 }
 
-func (r CocktailRepository) Create(ctx context.Context, params model.CocktailsParams) (*model.CocktailsDetail, error) {
+func (r CocktailRepository) Create(ctx context.Context, params model.CocktailParams) (*model.CocktailDetail, error) {
 	log.Printf("create cocktails...")
 
 	tx, err := db.DB.BeginTx(ctx, nil)
@@ -191,7 +191,7 @@ func (r CocktailRepository) Create(ctx context.Context, params model.CocktailsPa
 		return nil, err
 	}
 
-	return &model.CocktailsDetail{
+	return &model.CocktailDetail{
 		ID:        cocktailID,
 		Name:      params.Name,
 		Materials: materials,

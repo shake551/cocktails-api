@@ -18,7 +18,7 @@ type NullableCocktail struct {
 	UpdatedAt int64
 }
 
-type CocktailsDetail struct {
+type CocktailDetail struct {
 	ID        int64      `json:"id"`
 	Name      string     `json:"name"`
 	ImageURL  string     `json:"image_url"`
@@ -48,7 +48,7 @@ type MaterialQuantity struct {
 	Unit     string `json:"unit"`
 }
 
-type CocktailsParams struct {
+type CocktailParams struct {
 	Name      string
 	Materials []MaterialParams
 }

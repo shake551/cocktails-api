@@ -139,7 +139,7 @@ func (h *cocktailHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}})
 	}
 
-	params := model.CocktailsParams{
+	params := model.CocktailParams{
 		Name:      body.Name,
 		Materials: materials,
 	}
