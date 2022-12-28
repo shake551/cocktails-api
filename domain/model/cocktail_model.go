@@ -1,4 +1,4 @@
-package cocktail
+package model
 
 import "database/sql"
 
