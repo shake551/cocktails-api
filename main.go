@@ -68,6 +68,10 @@ func createRouter() chi.Router {
 	cu := usecase.NewCocktailUseCase(cr)
 	ch := handler.NewCocktailHandler(cu)
 
+	sr := datastore.NewShopRepository()
+	su := usecase.NewShopUseCase(sr)
+	sh := handler.NewShopHandler(su)
+
 	// no auth
 	mux.Group(func(mux chi.Router) {
 		mux.MethodFunc("GET", "/health", func(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +82,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("POST", "/cocktails", ch.Create)
 		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.GetById)
 
-		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
+		mux.MethodFunc("GET", "/shop", sh.GetLimit)
 		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
 		mux.MethodFunc("GET", "/shop/{shopID}", shop.FindByIDHandler)
 		mux.MethodFunc("GET", "/shop/{shopID}/cocktail", shop.GetShopCocktailsList)

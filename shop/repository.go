@@ -9,18 +9,17 @@ import (
 )
 
 type Repository interface {
-	GetLimit(ctx context.Context, limit int64, offset int64) ([]Shop, error)
-	FindByID(ctx context.Context, id int64) (Shop, error)
-	Create(ctx context.Context, params ShopParams) (*Shop, error)
-	CreateTable(ctx context.Context, shopID int64) (*Table, error)
-	GetTable(ctx context.Context, shopID int64, tableID int64) (*Table, error)
-	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error)
-	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error)
+	FindByID(ctx context.Context, id int64) (model.Shop, error)
+	Create(ctx context.Context, params ShopParams) (*model.Shop, error)
+	CreateTable(ctx context.Context, shopID int64) (*model.Table, error)
+	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
+	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error)
+	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
-	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*TableOrder, error)
-	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error)
+	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
+	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	GetShopCocktailsList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error)
-	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (CocktailDetail, error)
+	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
 }
 
 type ShopParams struct {
@@ -41,59 +40,31 @@ func NewShopRepository() Repository {
 	return &ShopRepository{}
 }
 
-func (r ShopRepository) GetLimit(ctx context.Context, limit int64, offset int64) ([]Shop, error) {
-	log.Println("get shops with limit ...")
-
-	query := `SELECT * FROM shops LIMIT ? OFFSET ?`
-	rows, err := db.DB.QueryContext(ctx, query, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var shops []Shop
-	for rows.Next() {
-		s := Shop{}
-		if err := rows.Scan(&s.ID, &s.Name); err != nil {
-			return nil, err
-		}
-
-		shops = append(shops, s)
-	}
-
-	if len(shops) == 0 {
-		return []Shop{}, nil
-	}
-
-	return shops, nil
-}
-
-func (r ShopRepository) FindByID(ctx context.Context, id int64) (Shop, error) {
+func (r ShopRepository) FindByID(ctx context.Context, id int64) (model.Shop, error) {
 	log.Println("find shop with shop id ...")
 
 	query := `SELECT * FROM shops WHERE id = ?`
 	rows, err := db.DB.QueryContext(ctx, query, id)
 	if db.IsNoRows(err) {
-		return Shop{}, err
+		return model.Shop{}, err
 	}
 	if err != nil {
-		return Shop{}, err
+		return model.Shop{}, err
 	}
 
 	defer rows.Close()
 
-	s := Shop{}
+	s := model.Shop{}
 	for rows.Next() {
 		if err := rows.Scan(&s.ID, &s.Name); err != nil {
-			return Shop{}, err
+			return model.Shop{}, err
 		}
 	}
 
 	return s, nil
 }
 
-func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*Shop, error) {
+func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*model.Shop, error) {
 	log.Println("create shop...")
 
 	query := `INSERT INTO shops (name) VALUES (?)`
@@ -107,10 +78,10 @@ func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*Shop, e
 		return nil, err
 	}
 
-	return &Shop{ID: shopID, Name: params.Name}, nil
+	return &model.Shop{ID: shopID, Name: params.Name}, nil
 }
 
-func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*Table, error) {
+func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*model.Table, error) {
 	log.Println("create shop table ...")
 
 	query := `INSERT INTO shop_tables (shop_id) VALUES (?)`
@@ -124,33 +95,33 @@ func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*Table, 
 		return nil, err
 	}
 
-	return &Table{ID: tableID, ShopID: shopID}, nil
+	return &model.Table{ID: tableID, ShopID: shopID}, nil
 }
 
-func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int64) (*Table, error) {
+func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error) {
 	log.Printf("get table ... shopID: %d, tabelID: %d \n", shopID, tableID)
 
 	q := `SELECT * FROM shop_tables WHERE id=? AND shop_id=?`
 	rows, err := db.DB.QueryContext(ctx, q, tableID, shopID)
 	if db.IsNoRows(err) {
-		return &Table{}, nil
+		return &model.Table{}, nil
 	}
 	if err != nil {
-		return &Table{}, err
+		return &model.Table{}, err
 	}
 
 	defer rows.Close()
 
-	var t Table
+	var t model.Table
 	for rows.Next() {
 		if err := rows.Scan(&t.ID, &t.ShopID); err != nil {
-			return &Table{}, err
+			return &model.Table{}, err
 		}
 	}
 	return &t, nil
 }
 
-func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*ShopCocktail, error) {
+func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error) {
 	log.Printf("add shop cocktails... shop_id: %d\n", shopID)
 
 	tx, err := db.DB.BeginTx(ctx, nil)
@@ -158,7 +129,7 @@ func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, para
 		return nil, err
 	}
 
-	var cocktails []*ShopCocktail
+	var cocktails []*model.ShopCocktail
 
 	findCocktailQuery := `SELECT id FROM cocktails WHERE id=?`
 	createShopCocktailQuery := `INSERT INTO shop_cocktails (shop_id, cocktail_id) VALUES (?, ?)`
@@ -182,7 +153,7 @@ func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, para
 			return nil, err
 		}
 
-		cocktails = append(cocktails, &ShopCocktail{ShopID: shopID, CocktailID: cID})
+		cocktails = append(cocktails, &model.ShopCocktail{ShopID: shopID, CocktailID: cID})
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -192,7 +163,7 @@ func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, para
 	return cocktails, nil
 }
 
-func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*Order, error) {
+func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error) {
 	log.Printf("receive order... shop_id: %d, table_id: %d \n", shopID, tableID)
 
 	tx, err := db.DB.BeginTx(ctx, nil)
@@ -200,7 +171,7 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 		return nil, err
 	}
 
-	var orders []*Order
+	var orders []*model.Order
 
 	now := time.Now().Unix()
 
@@ -231,7 +202,7 @@ func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, 
 			return nil, err
 		}
 
-		orders = append(orders, &Order{ID: orderID, TableID: tableID, ShopCocktailID: cID, CreatedAt: now, UpdatedAt: now})
+		orders = append(orders, &model.Order{ID: orderID, TableID: tableID, ShopCocktailID: cID, CreatedAt: now, UpdatedAt: now})
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -263,7 +234,7 @@ func (r ShopRepository) OrderProvide(ctx context.Context, shopID int64, tableID 
 	return err
 }
 
-func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*TableOrder, error) {
+func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error) {
 	log.Printf("get table order list ... shopID: %d, tableID: %d \n", shopID, tableID)
 
 	q := `SELECT 
@@ -285,34 +256,34 @@ func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tab
 
 	rows, err := db.DB.QueryContext(ctx, q, shopID, tableID, isProvided)
 	if db.IsNoRows(err) {
-		return []*TableOrder{}, err
+		return []*model.TableOrder{}, err
 	}
 	if err != nil {
-		return []*TableOrder{}, err
+		return []*model.TableOrder{}, err
 	}
 
 	defer rows.Close()
-	var orders []*TableOrder
+	var orders []*model.TableOrder
 	for rows.Next() {
-		no := NullableTableOrder{}
+		no := model.NullableTableOrder{}
 		if err := rows.Scan(&no.Name, &no.ImageURL); err != nil {
 			return nil, err
 		}
 
-		to := &TableOrder{
+		to := &model.TableOrder{
 			Name:     no.Name,
 			ImageURL: no.ImageURL.String,
 		}
 		orders = append(orders, to)
 	}
 	if len(orders) == 0 {
-		return []*TableOrder{}, nil
+		return []*model.TableOrder{}, nil
 	}
 
 	return orders, nil
 }
 
-func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*TableOrder, error) {
+func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error) {
 	log.Printf("get shop unprovided prder list ... shopID: %d \n", shopID)
 
 	q := `SELECT 
@@ -327,25 +298,25 @@ func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID i
 
 	rows, err := db.DB.QueryContext(ctx, q, shopID, limit, offset)
 	if err != nil {
-		return []*TableOrder{}, err
+		return []*model.TableOrder{}, err
 	}
 
 	defer rows.Close()
-	var orders []*TableOrder
+	var orders []*model.TableOrder
 	for rows.Next() {
-		no := NullableTableOrder{}
+		no := model.NullableTableOrder{}
 		if err := rows.Scan(&no.Name, &no.ImageURL); err != nil {
 			return nil, err
 		}
 
-		to := &TableOrder{
+		to := &model.TableOrder{
 			Name:     no.Name,
 			ImageURL: no.ImageURL.String,
 		}
 		orders = append(orders, to)
 	}
 	if len(orders) == 0 {
-		return []*TableOrder{}, nil
+		return []*model.TableOrder{}, nil
 	}
 
 	return orders, nil
@@ -394,7 +365,7 @@ func (r ShopRepository) GetShopCocktailsList(ctx context.Context, shopID int64, 
 	return cocktails, nil
 }
 
-func (r ShopRepository) GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (CocktailDetail, error) {
+func (r ShopRepository) GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error) {
 	log.Printf("get shop cocktail detail ... shopID: %d, cocktailID: %d \n", shopID, cocktailID)
 
 	q := `
@@ -417,28 +388,28 @@ func (r ShopRepository) GetShopCocktailDetail(ctx context.Context, shopID int64,
 
 	rows, err := db.DB.QueryContext(ctx, q, shopID, cocktailID)
 	if db.IsNoRows(err) {
-		return CocktailDetail{}, nil
+		return model.CocktailDetail{}, nil
 	}
 	if err != nil {
-		return CocktailDetail{}, err
+		return model.CocktailDetail{}, err
 	}
 
 	defer rows.Close()
 
-	var ncd NullableCocktailDetailRow
-	var materials []Materials
+	var ncd model.NullableCocktailDetailRow
+	var materials []model.Material
 	for rows.Next() {
 		if err := rows.Scan(&ncd.ID, &ncd.Name, &ncd.ImageURL, &ncd.MaterialID, &ncd.MaterialName); err != nil {
-			return CocktailDetail{}, err
+			return model.CocktailDetail{}, err
 		}
 
-		materials = append(materials, Materials{
+		materials = append(materials, model.Material{
 			ID:   ncd.MaterialID,
 			Name: ncd.MaterialName,
 		})
 	}
 
-	d := CocktailDetail{
+	d := model.CocktailDetail{
 		ID:        ncd.ID,
 		Name:      ncd.Name,
 		ImageURL:  ncd.ImageURL.String,
