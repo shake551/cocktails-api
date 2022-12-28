@@ -58,3 +58,61 @@ func (r CocktailRepository) GetLimit(ctx context.Context, limit int64, offset in
 
 	return cocktails, nil
 }
+
+func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.CocktailsDetail, error) {
+	log.Printf("get cocktails with cocktail id...")
+
+	query := `
+		SELECT
+		    cocktails.id,
+			cocktails.name,
+			cocktails.image_url,
+			materials.id,
+			materials.name,
+			cocktail_materials.quantity,
+			cocktail_materials.unit
+		FROM cocktails
+		INNER JOIN cocktail_materials
+			ON cocktails.id = cocktail_materials.cocktail_id
+			INNER JOIN materials
+				ON cocktail_materials.material_id = materials.id
+		WHERE cocktails.id = ?
+	`
+
+	rows, err := db.DB.QueryContext(ctx, query, id)
+	if db.IsNoRows(err) {
+		return model.CocktailsDetail{}, nil
+	}
+	if err != nil {
+		return model.CocktailsDetail{}, err
+	}
+
+	defer rows.Close()
+
+	var ncd model.NullableCocktailDetailRow
+	var materials []model.Material
+	for rows.Next() {
+
+		if err := rows.Scan(&ncd.ID, &ncd.Name, &ncd.ImageURL, &ncd.MaterialID, &ncd.MaterialName, &ncd.Quantity, &ncd.Unit); err != nil {
+			return model.CocktailsDetail{}, err
+		}
+
+		materials = append(materials, model.Material{
+			ID:   ncd.MaterialID,
+			Name: ncd.MaterialName,
+			Quantity: model.MaterialQuantity{
+				Quantity: ncd.Quantity,
+				Unit:     ncd.Unit,
+			},
+		})
+	}
+
+	d := model.CocktailsDetail{
+		ID:        ncd.ID,
+		Name:      ncd.Name,
+		ImageURL:  ncd.ImageURL.String,
+		Materials: materials,
+	}
+
+	return d, nil
+}
