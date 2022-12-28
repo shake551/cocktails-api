@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/shake551/cocktails-api/cocktail"
+	"github.com/shake551/cocktails-api/application/usecase"
+	"github.com/shake551/cocktails-api/infrastructure/parsistence/datastore"
+	"github.com/shake551/cocktails-api/interfaces/api/server/handler"
 	"github.com/shake551/cocktails-api/shop"
 	"log"
 	"mime"
@@ -62,8 +64,12 @@ func createRouter() chi.Router {
 	mux.Use(middleware.RequestLogger(getAccessLogFormatter()))
 	mux.Use(contentTypeRestrictionMiddleware("application/json"))
 
-	cr := cocktail.NewCocktailsRepository()
-	ch := cocktail.NewCocktailsHandler(cr)
+	//cr := cocktail.NewCocktailsRepository()
+	//ch := cocktail.NewCocktailsHandler(cr)
+
+	cr := datastore.NewCocktailRepository()
+	cu := usecase.NewCocktailUseCase(cr)
+	ch := handler.NewCocktailHandler(cu)
 
 	// no auth
 	mux.Group(func(mux chi.Router) {
@@ -71,9 +77,9 @@ func createRouter() chi.Router {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.FindCocktailsDetailByID)
-		mux.MethodFunc("GET", "/cocktails", ch.GetCocktailsHandler)
-		mux.MethodFunc("POST", "/cocktails", ch.PostCocktailsHandler)
+		//mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.FindCocktailsDetailByID)
+		mux.MethodFunc("GET", "/cocktails", ch.GetLimit)
+		//mux.MethodFunc("POST", "/cocktails", ch.PostCocktailsHandler)
 
 		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
 		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
