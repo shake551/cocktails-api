@@ -8,6 +8,7 @@ import (
 
 type CocktailUseCase interface {
 	GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]model.Cocktail, error)
+	GetById(ctx context.Context, id int64) (model.CocktailsDetail, error)
 }
 
 type cocktailUseCase struct {
@@ -20,4 +21,8 @@ func NewCocktailUseCase(r repository.CocktailRepository) CocktailUseCase {
 
 func (u *cocktailUseCase) GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]model.Cocktail, error) {
 	return u.CocktailRepository.GetLimit(ctx, limit, offset, keyword)
+}
+
+func (u *cocktailUseCase) GetById(ctx context.Context, id int64) (model.CocktailsDetail, error) {
+	return u.CocktailRepository.GetByID(ctx, id)
 }
