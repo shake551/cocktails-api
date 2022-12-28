@@ -47,3 +47,13 @@ type MaterialQuantity struct {
 	Quantity int64  `json:"quantity"`
 	Unit     string `json:"unit"`
 }
+
+type CocktailsParams struct {
+	Name      string
+	Materials []MaterialParams
+}
+
+type MaterialParams struct {
+	Name     string           `json:"name"`
+	Quantity MaterialQuantity `json:"quantity"`
+}
