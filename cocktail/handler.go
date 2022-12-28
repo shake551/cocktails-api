@@ -3,7 +3,6 @@ package cocktail
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
 	"github.com/shake551/cocktails-api/domain/model"
 	"log"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 )
 
 type Handler interface {
-	FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request)
 	PostCocktailsHandler(w http.ResponseWriter, r *http.Request)
 }
 
@@ -21,33 +19,6 @@ type CocktailsHandler struct {
 
 func NewCocktailsHandler(r Repository) *CocktailsHandler {
 	return &CocktailsHandler{r: r}
-}
-
-func (h CocktailsHandler) FindCocktailsDetailByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseInt(chi.URLParam(r, "cocktailsID"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	cocktailsDetail, err := h.r.FindCocktailsDetailByID(r.Context(), id)
-	if err != nil {
-		log.Printf("failed to get cocktails detail. err: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	b, err := json.Marshal(cocktailsDetail)
-	if err != nil {
-		log.Printf("failed to parse json. err: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
 }
 
 type PostCocktailsBody struct {
