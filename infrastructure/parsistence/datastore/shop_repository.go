@@ -40,3 +40,20 @@ func (r ShopRepository) GetLimit(ctx context.Context, limit int64, offset int64)
 
 	return shops, nil
 }
+
+func (r ShopRepository) Create(ctx context.Context, params model.ShopParams) (*model.Shop, error) {
+	log.Println("create shop...")
+
+	query := `INSERT INTO shops (name) VALUES (?)`
+	res, err := db.DB.ExecContext(ctx, query, params.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	shopID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Shop{ID: shopID, Name: params.Name}, nil
+}
