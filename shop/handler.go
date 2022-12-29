@@ -282,61 +282,6 @@ func GetShopUnprovidedOrderList(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func GetShopCocktailsList(w http.ResponseWriter, r *http.Request) {
-	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	v := r.URL.Query()
-	if v == nil {
-		return
-	}
-
-	var limit = int64(10)
-	if v.Get("limit") != "" {
-		l, err := strconv.ParseInt(v.Get("limit"), 10, 64)
-		if err != nil {
-			log.Printf("failed to get limit. err: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		limit = l
-	}
-
-	var offset = int64(0)
-	if v.Get("offset") != "" {
-		o, err := strconv.ParseInt(v.Get("offset"), 10, 64)
-		if err != nil {
-			log.Printf("failed to get offset. err: %v", err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-
-		offset = o
-	}
-
-	c, err := sr.GetShopCocktailsList(r.Context(), shopID, limit, offset)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	b, err := json.Marshal(c)
-	if err != nil {
-		log.Printf("failed to parse json. err: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
-	w.WriteHeader(http.StatusOK)
-	w.Write(b)
-}
-
 func GetShopCocktailDetailHandler(w http.ResponseWriter, r *http.Request) {
 	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
 	if err != nil {
