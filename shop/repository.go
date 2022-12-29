@@ -10,7 +10,6 @@ import (
 
 type Repository interface {
 	FindByID(ctx context.Context, id int64) (model.Shop, error)
-	Create(ctx context.Context, params ShopParams) (*model.Shop, error)
 	CreateTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error)
@@ -20,10 +19,6 @@ type Repository interface {
 	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	GetShopCocktailsList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error)
 	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
-}
-
-type ShopParams struct {
-	Name string `json:"name"`
 }
 
 type ShopCocktailParams struct {
@@ -62,23 +57,6 @@ func (r ShopRepository) FindByID(ctx context.Context, id int64) (model.Shop, err
 	}
 
 	return s, nil
-}
-
-func (r ShopRepository) Create(ctx context.Context, params ShopParams) (*model.Shop, error) {
-	log.Println("create shop...")
-
-	query := `INSERT INTO shops (name) VALUES (?)`
-	res, err := db.DB.ExecContext(ctx, query, params.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	shopID, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.Shop{ID: shopID, Name: params.Name}, nil
 }
 
 func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*model.Table, error) {

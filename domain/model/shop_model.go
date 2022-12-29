@@ -34,3 +34,7 @@ type NullableTableOrder struct {
 	Name     string
 	ImageURL sql.NullString
 }
+
+type ShopParams struct {
+	Name string `json:"name"`
+}

@@ -8,6 +8,7 @@ import (
 
 type ShopUseCase interface {
 	GetLimit(ctx context.Context, limit int64, offset int64) ([]model.Shop, error)
+	Create(ctx context.Context, params model.ShopParams) (*model.Shop, error)
 }
 
 type shopUseCase struct {
@@ -20,4 +21,8 @@ func NewShopUseCase(r repository.ShopRepository) ShopUseCase {
 
 func (u *shopUseCase) GetLimit(ctx context.Context, limit int64, offset int64) ([]model.Shop, error) {
 	return u.GetLimit(ctx, limit, offset)
+}
+
+func (u *shopUseCase) Create(ctx context.Context, params model.ShopParams) (*model.Shop, error) {
+	return u.ShopRepository.Create(ctx, params)
 }
