@@ -11,16 +11,11 @@ import (
 type Repository interface {
 	CreateTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
-	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
 	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
-}
-
-type ShopCocktailParams struct {
-	CocktailIDs []int64 `json:"cocktail_ids"`
 }
 
 type OrderParams struct {
@@ -71,48 +66,6 @@ func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int6
 		}
 	}
 	return &t, nil
-}
-
-func (r ShopRepository) AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error) {
-	log.Printf("add shop cocktails... shop_id: %d\n", shopID)
-
-	tx, err := db.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var cocktails []*model.ShopCocktail
-
-	findCocktailQuery := `SELECT id FROM cocktails WHERE id=?`
-	createShopCocktailQuery := `INSERT INTO shop_cocktails (shop_id, cocktail_id) VALUES (?, ?)`
-	for _, cID := range params.CocktailIDs {
-		_, err := db.DB.QueryContext(ctx, findCocktailQuery, cID)
-		if db.IsNoRows(err) {
-			tx.Rollback()
-			log.Printf("does not exist cocktails. cokctail_id: %d \n", cID)
-			return nil, err
-		}
-		if err != nil {
-			tx.Rollback()
-			log.Printf("cannot find shop_cocktails. shop_id: %d, cokctail_id: %d\n", shopID, cID)
-			return nil, err
-		}
-
-		_, err = db.DB.ExecContext(ctx, createShopCocktailQuery, shopID, cID)
-		if err != nil {
-			tx.Rollback()
-			log.Printf("fail create shop_cocktail. shop_id: %d, cocktail_id: %d", shopID, cID)
-			return nil, err
-		}
-
-		cocktails = append(cocktails, &model.ShopCocktail{ShopID: shopID, CocktailID: cID})
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return cocktails, nil
 }
 
 func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error) {
