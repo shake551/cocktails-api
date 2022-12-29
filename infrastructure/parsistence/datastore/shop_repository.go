@@ -124,3 +124,46 @@ func (r ShopRepository) GetShopCocktailList(ctx context.Context, shopID int64, l
 	}
 	return cocktails, nil
 }
+
+func (r ShopRepository) AddShopCocktail(ctx context.Context, shopID int64, params model.ShopCocktailParams) ([]*model.ShopCocktail, error) {
+	log.Printf("add shop cocktails... shop_id: %d\n", shopID)
+
+	tx, err := db.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var cocktails []*model.ShopCocktail
+
+	findCocktailQuery := `SELECT id FROM cocktails WHERE id=?`
+	createShopCocktailQuery := `INSERT INTO shop_cocktails (shop_id, cocktail_id) VALUES (?, ?)`
+	for _, cID := range params.CocktailIDs {
+		_, err := db.DB.QueryContext(ctx, findCocktailQuery, cID)
+		if db.IsNoRows(err) {
+			tx.Rollback()
+			log.Printf("does not exist cocktails. cokctail_id: %d \n", cID)
+			return nil, err
+		}
+		if err != nil {
+			tx.Rollback()
+			log.Printf("cannot find shop_cocktails. shop_id: %d, cokctail_id: %d\n", shopID, cID)
+			return nil, err
+		}
+
+		_, err = db.DB.ExecContext(ctx, createShopCocktailQuery, shopID, cID)
+		if err != nil {
+			tx.Rollback()
+			log.Printf("fail create shop_cocktail. shop_id: %d, cocktail_id: %d", shopID, cID)
+			return nil, err
+		}
+
+		cocktails = append(cocktails, &model.ShopCocktail{ShopID: shopID, CocktailID: cID})
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return cocktails, nil
+
+}
