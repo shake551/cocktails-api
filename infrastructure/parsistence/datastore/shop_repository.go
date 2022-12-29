@@ -82,7 +82,7 @@ func (r ShopRepository) GetByID(ctx context.Context, id int64) (model.Shop, erro
 	return s, nil
 }
 
-func (r ShopRepository) GetShopCocltailList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error) {
+func (r ShopRepository) GetShopCocktailList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error) {
 	log.Printf("get shop cocktail list ... %d \n", shopID)
 
 	q := `SELECT
