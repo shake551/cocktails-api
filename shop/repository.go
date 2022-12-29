@@ -9,7 +9,6 @@ import (
 )
 
 type Repository interface {
-	FindByID(ctx context.Context, id int64) (model.Shop, error)
 	CreateTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
 	AddShopCocktails(ctx context.Context, shopID int64, params ShopCocktailParams) ([]*model.ShopCocktail, error)
@@ -33,30 +32,6 @@ type ShopRepository struct{}
 
 func NewShopRepository() Repository {
 	return &ShopRepository{}
-}
-
-func (r ShopRepository) FindByID(ctx context.Context, id int64) (model.Shop, error) {
-	log.Println("find shop with shop id ...")
-
-	query := `SELECT * FROM shops WHERE id = ?`
-	rows, err := db.DB.QueryContext(ctx, query, id)
-	if db.IsNoRows(err) {
-		return model.Shop{}, err
-	}
-	if err != nil {
-		return model.Shop{}, err
-	}
-
-	defer rows.Close()
-
-	s := model.Shop{}
-	for rows.Next() {
-		if err := rows.Scan(&s.ID, &s.Name); err != nil {
-			return model.Shop{}, err
-		}
-	}
-
-	return s, nil
 }
 
 func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*model.Table, error) {

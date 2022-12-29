@@ -8,4 +8,5 @@ import (
 type ShopRepository interface {
 	GetLimit(ctx context.Context, limit int64, offset int64) ([]model.Shop, error)
 	Create(ctx context.Context, params model.ShopParams) (*model.Shop, error)
+	GetByID(ctx context.Context, id int64) (model.Shop, error)
 }

@@ -57,3 +57,27 @@ func (r ShopRepository) Create(ctx context.Context, params model.ShopParams) (*m
 
 	return &model.Shop{ID: shopID, Name: params.Name}, nil
 }
+
+func (r ShopRepository) GetByID(ctx context.Context, id int64) (model.Shop, error) {
+	log.Println("find shop with shop id ...")
+
+	query := `SELECT * FROM shops WHERE id = ?`
+	rows, err := db.DB.QueryContext(ctx, query, id)
+	if db.IsNoRows(err) {
+		return model.Shop{}, err
+	}
+	if err != nil {
+		return model.Shop{}, err
+	}
+
+	defer rows.Close()
+
+	s := model.Shop{}
+	for rows.Next() {
+		if err := rows.Scan(&s.ID, &s.Name); err != nil {
+			return model.Shop{}, err
+		}
+	}
+
+	return s, nil
+}
