@@ -38,3 +38,7 @@ type NullableTableOrder struct {
 type ShopParams struct {
 	Name string `json:"name"`
 }
+
+type ShopCocktailParams struct {
+	CocktailIDs []int64 `json:"cocktail_ids"`
+}
