@@ -299,3 +299,52 @@ func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int6
 	}
 	return &t, nil
 }
+
+func (r ShopRepository) GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error) {
+	log.Printf("get table order list ... shopID: %d, tableID: %d \n", shopID, tableID)
+
+	q := `SELECT 
+			cocktails.name,
+			cocktails.image_url
+		FROM shop_tables
+			INNER JOIN shop_orders
+			INNER JOIN cocktails
+		WHERE shop_id=?
+			AND shop_tables.id=? 
+			AND shop_tables.id = shop_orders.table_id
+			AND cocktails.id = shop_orders.shop_cocktail_id
+			AND shop_orders.is_provided LIKE CONCAT('%', ?, '%')`
+
+	var isProvided string
+	if unprovided {
+		isProvided = "1"
+	}
+
+	rows, err := db.DB.QueryContext(ctx, q, shopID, tableID, isProvided)
+	if db.IsNoRows(err) {
+		return []*model.TableOrder{}, err
+	}
+	if err != nil {
+		return []*model.TableOrder{}, err
+	}
+
+	defer rows.Close()
+	var orders []*model.TableOrder
+	for rows.Next() {
+		no := model.NullableTableOrder{}
+		if err := rows.Scan(&no.Name, &no.ImageURL); err != nil {
+			return nil, err
+		}
+
+		to := &model.TableOrder{
+			Name:     no.Name,
+			ImageURL: no.ImageURL.String,
+		}
+		orders = append(orders, to)
+	}
+	if len(orders) == 0 {
+		return []*model.TableOrder{}, nil
+	}
+
+	return orders, nil
+}

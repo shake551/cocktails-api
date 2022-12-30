@@ -15,4 +15,5 @@ type ShopRepository interface {
 	GetUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	AddTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
+	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
 }

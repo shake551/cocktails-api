@@ -16,6 +16,7 @@ type ShopUseCase interface {
 	GetUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	AddTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
+	GetTableOrderList(ctx context.Context, ShopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
 }
 
 type shopUseCase struct {
@@ -60,4 +61,8 @@ func (u *shopUseCase) AddTable(ctx context.Context, shopID int64) (*model.Table,
 
 func (u *shopUseCase) GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error) {
 	return u.ShopRepository.GetTable(ctx, shopID, tableID)
+}
+
+func (u *shopUseCase) GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error) {
+	return u.ShopRepository.GetTableOrderList(ctx, shopID, tableID, unprovided)
 }
