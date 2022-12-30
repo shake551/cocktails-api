@@ -9,7 +9,6 @@ import (
 )
 
 type Repository interface {
-	CreateTable(ctx context.Context, shopID int64) (*model.Table, error)
 	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
@@ -24,23 +23,6 @@ type ShopRepository struct{}
 
 func NewShopRepository() Repository {
 	return &ShopRepository{}
-}
-
-func (r ShopRepository) CreateTable(ctx context.Context, shopID int64) (*model.Table, error) {
-	log.Println("create shop table ...")
-
-	query := `INSERT INTO shop_tables (shop_id) VALUES (?)`
-	res, err := db.DB.ExecContext(ctx, query, shopID)
-	if err != nil {
-		return nil, err
-	}
-
-	tableID, err := res.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.Table{ID: tableID, ShopID: shopID}, nil
 }
 
 func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error) {

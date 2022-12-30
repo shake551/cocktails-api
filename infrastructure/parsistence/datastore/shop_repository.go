@@ -259,3 +259,20 @@ func (r ShopRepository) GetUnprovidedOrderList(ctx context.Context, shopID int64
 
 	return orders, nil
 }
+
+func (r ShopRepository) AddTable(ctx context.Context, shopID int64) (*model.Table, error) {
+	log.Println("create shop table ...")
+
+	query := `INSERT INTO shop_tables (shop_id) VALUES (?)`
+	res, err := db.DB.ExecContext(ctx, query, shopID)
+	if err != nil {
+		return nil, err
+	}
+
+	tableID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.Table{ID: tableID, ShopID: shopID}, nil
+}
