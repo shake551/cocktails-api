@@ -87,7 +87,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/shop/{shopID}", sh.GetByID)
 		mux.MethodFunc("GET", "/shop/{shopID}/cocktail", sh.GetShopCocktailList)
 		mux.MethodFunc("POST", "/shop/{shopID}/cocktail", sh.AddShopCocktail)
-		mux.MethodFunc("GET", "/shop/{shopID}/cocktail/{cocktailID}", shop.GetShopCocktailDetailHandler)
+		mux.MethodFunc("GET", "/shop/{shopID}/cocktail/{cocktailID}", sh.GetShopCocktailDetail)
 		mux.MethodFunc("POST", "/shop/{shopID}/table", shop.CreateShopTableHandler)
 		mux.MethodFunc("GET", "/shop/{shopID}/order", shop.GetShopUnprovidedOrderList)
 		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", shop.GetTableHandler)
