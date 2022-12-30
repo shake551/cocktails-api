@@ -19,6 +19,7 @@ type ShopHandler interface {
 	GetShopCocktailDetail(w http.ResponseWriter, r *http.Request)
 	GetUnprovidedOrderList(w http.ResponseWriter, r *http.Request)
 	AddTable(w http.ResponseWriter, r *http.Request)
+	GetTable(w http.ResponseWriter, r *http.Request)
 }
 
 type shopHandler struct {
@@ -346,5 +347,37 @@ func (h *shopHandler) AddTable(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
 	w.WriteHeader(http.StatusCreated)
+	w.Write(b)
+}
+
+func (h *shopHandler) GetTable(w http.ResponseWriter, r *http.Request) {
+	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	tableID, err := strconv.ParseInt(chi.URLParam(r, "tableID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	t, err := h.u.GetTable(r.Context(), shopID, tableID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(t)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusOK)
 	w.Write(b)
 }

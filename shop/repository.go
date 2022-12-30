@@ -9,7 +9,6 @@ import (
 )
 
 type Repository interface {
-	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
 	Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error)
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
@@ -23,29 +22,6 @@ type ShopRepository struct{}
 
 func NewShopRepository() Repository {
 	return &ShopRepository{}
-}
-
-func (r ShopRepository) GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error) {
-	log.Printf("get table ... shopID: %d, tabelID: %d \n", shopID, tableID)
-
-	q := `SELECT * FROM shop_tables WHERE id=? AND shop_id=?`
-	rows, err := db.DB.QueryContext(ctx, q, tableID, shopID)
-	if db.IsNoRows(err) {
-		return &model.Table{}, nil
-	}
-	if err != nil {
-		return &model.Table{}, err
-	}
-
-	defer rows.Close()
-
-	var t model.Table
-	for rows.Next() {
-		if err := rows.Scan(&t.ID, &t.ShopID); err != nil {
-			return &model.Table{}, err
-		}
-	}
-	return &t, nil
 }
 
 func (r ShopRepository) Order(ctx context.Context, shopID int64, tableID int64, params OrderParams) ([]*model.Order, error) {
