@@ -42,3 +42,7 @@ type ShopParams struct {
 type ShopCocktailParams struct {
 	CocktailIDs []int64 `json:"cocktail_ids"`
 }
+
+type OrderParams struct {
+	CocktailIDs []int64 `json:"cocktail_ids"`
+}
