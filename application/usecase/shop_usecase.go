@@ -13,6 +13,7 @@ type ShopUseCase interface {
 	GetShopCocktailList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error)
 	AddShopCocktail(ctx context.Context, shopID int64, params model.ShopCocktailParams) ([]*model.ShopCocktail, error)
 	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
+	GetUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 }
 
 type shopUseCase struct {
@@ -45,4 +46,8 @@ func (u *shopUseCase) AddShopCocktail(ctx context.Context, shopID int64, params 
 
 func (u *shopUseCase) GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error) {
 	return u.ShopRepository.GetShopCocktailDetail(ctx, shopID, cocktailID)
+}
+
+func (u *shopUseCase) GetUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error) {
+	return u.ShopRepository.GetUnprovidedOrderList(ctx, shopID, limit, offset)
 }
