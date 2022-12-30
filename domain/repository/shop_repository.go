@@ -11,4 +11,5 @@ type ShopRepository interface {
 	GetByID(ctx context.Context, id int64) (model.Shop, error)
 	GetShopCocktailList(ctx context.Context, shopID int64, limit int64, offset int64) ([]model.Cocktail, error)
 	AddShopCocktail(ctx context.Context, shopID int64, params model.ShopCocktailParams) ([]*model.ShopCocktail, error)
+	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
 }
