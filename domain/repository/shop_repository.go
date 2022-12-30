@@ -14,4 +14,5 @@ type ShopRepository interface {
 	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
 	GetUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
 	AddTable(ctx context.Context, shopID int64) (*model.Table, error)
+	GetTable(ctx context.Context, shopID int64, tableID int64) (*model.Table, error)
 }
