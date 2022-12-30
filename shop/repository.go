@@ -15,7 +15,6 @@ type Repository interface {
 	OrderProvide(ctx context.Context, shopID int64, tableID int64, orderID int64) error
 	GetTableOrderList(ctx context.Context, shopID int64, tableID int64, unprovided bool) ([]*model.TableOrder, error)
 	GetShopUnprovidedOrderList(ctx context.Context, shopID int64, limit int64, offset int64) ([]*model.TableOrder, error)
-	GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error)
 }
 
 type OrderParams struct {
@@ -225,58 +224,4 @@ func (r ShopRepository) GetShopUnprovidedOrderList(ctx context.Context, shopID i
 	}
 
 	return orders, nil
-}
-
-func (r ShopRepository) GetShopCocktailDetail(ctx context.Context, shopID int64, cocktailID int64) (model.CocktailDetail, error) {
-	log.Printf("get shop cocktail detail ... shopID: %d, cocktailID: %d \n", shopID, cocktailID)
-
-	q := `
-		SELECT
-		    cocktails.id,
-			cocktails.name,
-			cocktails.image_url,
-			materials.id,
-			materials.name
-		FROM cocktails
-		INNER JOIN shop_cocktails
-			ON shop_cocktails.cocktail_id = cocktails.id
-		INNER JOIN cocktail_materials
-			ON cocktails.id = cocktail_materials.cocktail_id
-			INNER JOIN materials
-				ON cocktail_materials.material_id = materials.id
-		WHERE shop_cocktails.shop_id= ?
-			AND cocktails.id = ?
-	`
-
-	rows, err := db.DB.QueryContext(ctx, q, shopID, cocktailID)
-	if db.IsNoRows(err) {
-		return model.CocktailDetail{}, nil
-	}
-	if err != nil {
-		return model.CocktailDetail{}, err
-	}
-
-	defer rows.Close()
-
-	var ncd model.NullableCocktailDetailRow
-	var materials []model.Material
-	for rows.Next() {
-		if err := rows.Scan(&ncd.ID, &ncd.Name, &ncd.ImageURL, &ncd.MaterialID, &ncd.MaterialName); err != nil {
-			return model.CocktailDetail{}, err
-		}
-
-		materials = append(materials, model.Material{
-			ID:   ncd.MaterialID,
-			Name: ncd.MaterialName,
-		})
-	}
-
-	d := model.CocktailDetail{
-		ID:        ncd.ID,
-		Name:      ncd.Name,
-		ImageURL:  ncd.ImageURL.String,
-		Materials: materials,
-	}
-
-	return d, nil
 }
