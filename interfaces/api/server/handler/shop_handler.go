@@ -21,6 +21,7 @@ type ShopHandler interface {
 	AddTable(w http.ResponseWriter, r *http.Request)
 	GetTable(w http.ResponseWriter, r *http.Request)
 	GetTableOrderList(w http.ResponseWriter, r *http.Request)
+	Order(w http.ResponseWriter, r *http.Request)
 }
 
 type shopHandler struct {
@@ -415,6 +416,45 @@ func (h *shopHandler) GetTableOrderList(w http.ResponseWriter, r *http.Request) 
 	}
 
 	b, err := json.Marshal(os)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusCreated)
+	w.Write(b)
+}
+
+func (h *shopHandler) Order(w http.ResponseWriter, r *http.Request) {
+	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	tableID, err := strconv.ParseInt(chi.URLParam(r, "tableID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	body := model.OrderParams{}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("bad request error. err: %v, body:%v", err, body)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	o, err := h.u.Order(r.Context(), shopID, tableID, body)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(o)
 	if err != nil {
 		log.Printf("failed to parse json. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
