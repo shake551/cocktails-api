@@ -6,7 +6,6 @@ import (
 	"github.com/shake551/cocktails-api/application/usecase"
 	"github.com/shake551/cocktails-api/infrastructure/parsistence/datastore"
 	"github.com/shake551/cocktails-api/interfaces/api/server/handler"
-	"github.com/shake551/cocktails-api/shop"
 	"log"
 	"mime"
 	"net"
@@ -93,7 +92,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", sh.GetTable)
 		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}/order", sh.GetTableOrderList)
 		mux.MethodFunc("POST", "/shop/{shopID}/table/{tableID}/order", sh.Order)
-		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", shop.OrderProvide)
+		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", sh.OrderProvide)
 	})
 
 	return mux
