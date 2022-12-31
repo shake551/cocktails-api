@@ -22,6 +22,7 @@ type ShopHandler interface {
 	GetTable(w http.ResponseWriter, r *http.Request)
 	GetTableOrderList(w http.ResponseWriter, r *http.Request)
 	Order(w http.ResponseWriter, r *http.Request)
+	OrderProvide(w http.ResponseWriter, r *http.Request)
 }
 
 type shopHandler struct {
@@ -465,4 +466,33 @@ func (h *shopHandler) Order(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
 	w.WriteHeader(http.StatusCreated)
 	w.Write(b)
+}
+
+func (h *shopHandler) OrderProvide(w http.ResponseWriter, r *http.Request) {
+	shopID, err := strconv.ParseInt(chi.URLParam(r, "shopID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	tableID, err := strconv.ParseInt(chi.URLParam(r, "tableID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	orderID, err := strconv.ParseInt(chi.URLParam(r, "orderID"), 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	err = h.u.OrderProvide(r.Context(), shopID, tableID, orderID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 }
