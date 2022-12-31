@@ -1,4 +1,4 @@
-package cocktail
+package model
 
 import "database/sql"
 
@@ -18,7 +18,7 @@ type NullableCocktail struct {
 	UpdatedAt int64
 }
 
-type CocktailsDetail struct {
+type CocktailDetail struct {
 	ID        int64      `json:"id"`
 	Name      string     `json:"name"`
 	ImageURL  string     `json:"image_url"`
@@ -46,4 +46,14 @@ type Material struct {
 type MaterialQuantity struct {
 	Quantity int64  `json:"quantity"`
 	Unit     string `json:"unit"`
+}
+
+type CocktailParams struct {
+	Name      string
+	Materials []MaterialParams
+}
+
+type MaterialParams struct {
+	Name     string           `json:"name"`
+	Quantity MaterialQuantity `json:"quantity"`
 }

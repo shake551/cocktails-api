@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/shake551/cocktails-api/cocktail"
-	"github.com/shake551/cocktails-api/shop"
+	"github.com/shake551/cocktails-api/application/usecase"
+	"github.com/shake551/cocktails-api/infrastructure/parsistence/datastore"
+	"github.com/shake551/cocktails-api/interfaces/api/server/handler"
 	"log"
 	"mime"
 	"net"
@@ -62,8 +63,13 @@ func createRouter() chi.Router {
 	mux.Use(middleware.RequestLogger(getAccessLogFormatter()))
 	mux.Use(contentTypeRestrictionMiddleware("application/json"))
 
-	cr := cocktail.NewCocktailsRepository()
-	ch := cocktail.NewCocktailsHandler(cr)
+	cr := datastore.NewCocktailRepository()
+	cu := usecase.NewCocktailUseCase(cr)
+	ch := handler.NewCocktailHandler(cu)
+
+	sr := datastore.NewShopRepository()
+	su := usecase.NewShopUseCase(sr)
+	sh := handler.NewShopHandler(su)
 
 	// no auth
 	mux.Group(func(mux chi.Router) {
@@ -71,22 +77,22 @@ func createRouter() chi.Router {
 			w.WriteHeader(http.StatusOK)
 		})
 
-		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.FindCocktailsDetailByID)
-		mux.MethodFunc("GET", "/cocktails", ch.GetCocktailsHandler)
-		mux.MethodFunc("POST", "/cocktails", ch.PostCocktailsHandler)
+		mux.MethodFunc("GET", "/cocktails", ch.GetLimit)
+		mux.MethodFunc("POST", "/cocktails", ch.Create)
+		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.GetById)
 
-		mux.MethodFunc("GET", "/shop", shop.GetShopsHandler)
-		mux.MethodFunc("POST", "/shop", shop.PostShopHandler)
-		mux.MethodFunc("GET", "/shop/{shopID}", shop.FindByIDHandler)
-		mux.MethodFunc("GET", "/shop/{shopID}/cocktail", shop.GetShopCocktailsList)
-		mux.MethodFunc("POST", "/shop/{shopID}/cocktail", shop.AddShopCocktailHandler)
-		mux.MethodFunc("GET", "/shop/{shopID}/cocktail/{cocktailID}", shop.GetShopCocktailDetailHandler)
-		mux.MethodFunc("POST", "/shop/{shopID}/table", shop.CreateShopTableHandler)
-		mux.MethodFunc("GET", "/shop/{shopID}/order", shop.GetShopUnprovidedOrderList)
-		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", shop.GetTableHandler)
-		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}/order", shop.GetTableOrderListHandler)
-		mux.MethodFunc("POST", "/shop/{shopID}/table/{tableID}/order", shop.OrderHandler)
-		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", shop.OrderProvide)
+		mux.MethodFunc("GET", "/shop", sh.GetLimit)
+		mux.MethodFunc("POST", "/shop", sh.Create)
+		mux.MethodFunc("GET", "/shop/{shopID}", sh.GetByID)
+		mux.MethodFunc("GET", "/shop/{shopID}/cocktail", sh.GetShopCocktailList)
+		mux.MethodFunc("POST", "/shop/{shopID}/cocktail", sh.AddShopCocktail)
+		mux.MethodFunc("GET", "/shop/{shopID}/cocktail/{cocktailID}", sh.GetShopCocktailDetail)
+		mux.MethodFunc("GET", "/shop/{shopID}/order", sh.GetUnprovidedOrderList)
+		mux.MethodFunc("POST", "/shop/{shopID}/table", sh.AddTable)
+		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}", sh.GetTable)
+		mux.MethodFunc("GET", "/shop/{shopID}/table/{tableID}/order", sh.GetTableOrderList)
+		mux.MethodFunc("POST", "/shop/{shopID}/table/{tableID}/order", sh.Order)
+		mux.MethodFunc("PUT", "/shop/{shopID}/table/{tableID}/order/{orderID}", sh.OrderProvide)
 	})
 
 	return mux

@@ -1,36 +1,21 @@
-package cocktail
+package datastore
 
 import (
 	"context"
 	"database/sql"
 	"github.com/shake551/cocktails-api/db"
+	"github.com/shake551/cocktails-api/domain/model"
 	"log"
 	"time"
 )
 
-type Repository interface {
-	GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]Cocktail, error)
-	FindCocktailsDetailByID(ctx context.Context, id int64) (CocktailsDetail, error)
-	Create(ctx context.Context, params CocktailsParams) (*CocktailsDetail, error)
+type CocktailRepository struct{}
+
+func NewCocktailRepository() *CocktailRepository {
+	return &CocktailRepository{}
 }
 
-type CocktailsParams struct {
-	Name      string
-	Materials []MaterialParams
-}
-
-type MaterialParams struct {
-	Name     string           `json:"name"`
-	Quantity MaterialQuantity `json:"quantity"`
-}
-
-type CocktailsRepository struct{}
-
-func NewCocktailsRepository() Repository {
-	return &CocktailsRepository{}
-}
-
-func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]Cocktail, error) {
+func (r CocktailRepository) GetLimit(ctx context.Context, limit int64, offset int64, keyword string) ([]model.Cocktail, error) {
 	log.Printf("get cocktails with limit...")
 
 	var rows *sql.Rows
@@ -51,14 +36,14 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 	}
 	defer rows.Close()
 
-	var cocktails []Cocktail
+	var cocktails []model.Cocktail
 	for rows.Next() {
-		nc := NullableCocktail{}
+		nc := model.NullableCocktail{}
 		if err := rows.Scan(&nc.ID, &nc.Name, &nc.ImageURL, &nc.CreatedAt, &nc.UpdatedAt); err != nil {
 			return nil, err
 		}
 
-		c := Cocktail{
+		c := model.Cocktail{
 			ID:        nc.ID,
 			Name:      nc.Name,
 			ImageURL:  nc.ImageURL.String,
@@ -69,13 +54,13 @@ func (r CocktailsRepository) GetLimit(ctx context.Context, limit int64, offset i
 	}
 
 	if len(cocktails) == 0 {
-		return []Cocktail{}, nil
+		return []model.Cocktail{}, nil
 	}
 
 	return cocktails, nil
 }
 
-func (r CocktailsRepository) FindCocktailsDetailByID(ctx context.Context, id int64) (CocktailsDetail, error) {
+func (r CocktailRepository) GetByID(ctx context.Context, id int64) (model.CocktailDetail, error) {
 	log.Printf("get cocktails with cocktail id...")
 
 	query := `
@@ -97,33 +82,33 @@ func (r CocktailsRepository) FindCocktailsDetailByID(ctx context.Context, id int
 
 	rows, err := db.DB.QueryContext(ctx, query, id)
 	if db.IsNoRows(err) {
-		return CocktailsDetail{}, nil
+		return model.CocktailDetail{}, nil
 	}
 	if err != nil {
-		return CocktailsDetail{}, err
+		return model.CocktailDetail{}, err
 	}
 
 	defer rows.Close()
 
-	var ncd NullableCocktailDetailRow
-	var materials []Material
+	var ncd model.NullableCocktailDetailRow
+	var materials []model.Material
 	for rows.Next() {
 
 		if err := rows.Scan(&ncd.ID, &ncd.Name, &ncd.ImageURL, &ncd.MaterialID, &ncd.MaterialName, &ncd.Quantity, &ncd.Unit); err != nil {
-			return CocktailsDetail{}, err
+			return model.CocktailDetail{}, err
 		}
 
-		materials = append(materials, Material{
+		materials = append(materials, model.Material{
 			ID:   ncd.MaterialID,
 			Name: ncd.MaterialName,
-			Quantity: MaterialQuantity{
+			Quantity: model.MaterialQuantity{
 				Quantity: ncd.Quantity,
 				Unit:     ncd.Unit,
 			},
 		})
 	}
 
-	d := CocktailsDetail{
+	d := model.CocktailDetail{
 		ID:        ncd.ID,
 		Name:      ncd.Name,
 		ImageURL:  ncd.ImageURL.String,
@@ -133,7 +118,7 @@ func (r CocktailsRepository) FindCocktailsDetailByID(ctx context.Context, id int
 	return d, nil
 }
 
-func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams) (*CocktailsDetail, error) {
+func (r CocktailRepository) Create(ctx context.Context, params model.CocktailParams) (*model.CocktailDetail, error) {
 	log.Printf("create cocktails...")
 
 	tx, err := db.DB.BeginTx(ctx, nil)
@@ -154,7 +139,7 @@ func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams)
 		return nil, err
 	}
 
-	materials := []Material{}
+	materials := []model.Material{}
 
 	materialSelectQuery := `SELECT EXISTS (SELECT * FROM materials WHERE materials.name = ?)`
 	materialInsertQuery := `INSERT INTO materials (name, created_at, updated_at) VALUES (?, ?, ?)`
@@ -193,7 +178,7 @@ func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams)
 			return nil, err
 		}
 
-		material := Material{
+		material := model.Material{
 			ID:       materialID,
 			Name:     m.Name,
 			Quantity: m.Quantity,
@@ -206,7 +191,7 @@ func (r CocktailsRepository) Create(ctx context.Context, params CocktailsParams)
 		return nil, err
 	}
 
-	return &CocktailsDetail{
+	return &model.CocktailDetail{
 		ID:        cocktailID,
 		Name:      params.Name,
 		Materials: materials,
