@@ -80,6 +80,7 @@ func createRouter() chi.Router {
 		mux.MethodFunc("GET", "/cocktails", ch.GetLimit)
 		mux.MethodFunc("POST", "/cocktails", ch.Create)
 		mux.MethodFunc("GET", "/cocktails/{cocktailsID}", ch.GetById)
+		mux.MethodFunc("GET", "/cocktails/list", ch.GetListByIDs)
 
 		mux.MethodFunc("GET", "/shop", sh.GetLimit)
 		mux.MethodFunc("POST", "/shop", sh.Create)
