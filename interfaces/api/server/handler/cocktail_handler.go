@@ -15,6 +15,7 @@ type CocktailHandler interface {
 	GetLimit(w http.ResponseWriter, r *http.Request)
 	GetById(w http.ResponseWriter, r *http.Request)
 	Create(w http.ResponseWriter, r *http.Request)
+	GetListByIDs(w http.ResponseWriter, r *http.Request)
 }
 
 type cocktailHandler struct {
@@ -154,6 +155,47 @@ func (h *cocktailHandler) Create(w http.ResponseWriter, r *http.Request) {
 	b, err := json.Marshal(coc)
 	if err != nil {
 		log.Printf("failed to parse json")
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+}
+
+func (h *cocktailHandler) GetListByIDs(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+	if v == nil {
+		return
+	}
+
+	var ids []int64
+	for i := 0; i < 20; i++ {
+		if v.Get("ids["+strconv.Itoa(i)+"]") != "" {
+			id, err := strconv.ParseInt(v.Get("ids["+strconv.Itoa(i)+"]"), 10, 64)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				return
+			}
+			ids = append(ids, id)
+		} else {
+			break
+		}
+	}
+
+	cocktails, err := h.u.GetListByIDs(r.Context(), ids)
+	if err != nil {
+		log.Printf("failed to get cocktails. err: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(cocktails)
+	if err != nil {
+		log.Printf("failed to parse json. err: %v", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
