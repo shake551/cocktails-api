@@ -6,6 +6,7 @@ import (
 	"github.com/shake551/cocktails-api/db"
 	"github.com/shake551/cocktails-api/domain/model"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -198,4 +199,50 @@ func (r CocktailRepository) Create(ctx context.Context, params model.CocktailPar
 		CreatedAt: now,
 		UpdatedAt: now,
 	}, nil
+}
+
+func (r CocktailRepository) GetListByIDs(ctx context.Context, ids []int64) ([]model.Cocktail, error) {
+	log.Println("get cocktails with id list ...")
+
+	var rows *sql.Rows
+	var err error
+
+	repeat := strings.Repeat("?,", len(ids)-1) + "?"
+	var cocktailIds []interface{}
+	for _, id := range ids {
+		cocktailIds = append(cocktailIds, id)
+	}
+
+	query := `SELECT * FROM cocktails where id IN ( ` + repeat + ` ) `
+	rows, err = db.DB.QueryContext(ctx, query, cocktailIds...)
+	if err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cocktails []model.Cocktail
+	for rows.Next() {
+		nc := model.NullableCocktail{}
+		if err := rows.Scan(&nc.ID, &nc.Name, &nc.ImageURL, &nc.CreatedAt, &nc.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		c := model.Cocktail{
+			ID:        nc.ID,
+			Name:      nc.Name,
+			ImageURL:  nc.ImageURL.String,
+			CreatedAt: nc.CreatedAt,
+			UpdatedAt: nc.CreatedAt,
+		}
+		cocktails = append(cocktails, c)
+	}
+
+	if len(cocktails) == 0 {
+		return []model.Cocktail{}, nil
+	}
+
+	return cocktails, nil
 }
