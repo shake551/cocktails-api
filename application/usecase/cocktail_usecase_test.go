@@ -125,3 +125,73 @@ func TestGetById(t *testing.T) {
 		})
 	}
 }
+
+func TestCreate(t *testing.T) {
+	type testcase struct {
+		Name  string
+		Input model.CocktailParams
+		Want  *model.CocktailDetail
+	}
+
+	tests := []testcase{
+		{
+			Name: "success",
+			Input: model.CocktailParams{
+				Name: "ゴットファーザー",
+				Materials: []model.MaterialParams{
+					{
+						Name: "ウイスキー",
+						Quantity: model.MaterialQuantity{
+							Quantity: 30,
+							Unit:     "ml",
+						},
+					},
+					{
+						Name: "アマレット",
+						Quantity: model.MaterialQuantity{
+							Quantity: 10,
+							Unit:     "ml",
+						},
+					},
+				},
+			},
+			Want: &model.CocktailDetail{
+				ID:       int64(1),
+				Name:     "ゴットファーザー",
+				ImageURL: "",
+				Materials: []model.Material{
+					{
+						ID:   int64(1),
+						Name: "ウイスキー",
+						Quantity: model.MaterialQuantity{
+							Quantity: 30,
+							Unit:     "ml",
+						},
+					},
+					{
+						ID:   int64(2),
+						Name: "アマレット",
+						Quantity: model.MaterialQuantity{
+							Quantity: 10,
+							Unit:     "ml",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	r := new(repository_mock.CocktailRepository)
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			r.On("Create", mock.Anything, tc.Input).Return(tc.Want, nil)
+			uc := &cocktailUseCase{r}
+
+			res, err := uc.Create(context.Background(), tc.Input)
+
+			assert.Equal(t, res, tc.Want)
+			assert.Nil(t, err)
+		})
+	}
+}
