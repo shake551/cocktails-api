@@ -1,11 +1,10 @@
-package application_test
+package usecase
 
 import (
 	"context"
 	"testing"
 
-	"github.com/shake551/cocktails-api/application/usecase"
-	model "github.com/shake551/cocktails-api/domain/model"
+	"github.com/shake551/cocktails-api/domain/model"
 	"github.com/shake551/cocktails-api/domain/repository_mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -68,9 +67,60 @@ func TestGetLimit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc := usecase.NewCocktailUseCase(r)
+			uc := &cocktailUseCase{r}
 			res, err := uc.GetLimit(context.Background(), tt.limit, tt.offset, tt.keyword)
 			assert.Equal(t, res, tt.want)
+			assert.Nil(t, err)
+		})
+	}
+}
+
+func TestGetById(t *testing.T) {
+	type testcase struct {
+		Name string
+		ID   int64
+		Want model.CocktailDetail
+	}
+
+	tests := []testcase{
+		{
+			Name: "success",
+			ID:   1,
+			Want: model.CocktailDetail{
+				ID:       1,
+				Name:     "ゴットファーザー",
+				ImageURL: "",
+				Materials: []model.Material{
+					{
+						ID:   1,
+						Name: "ウイスキー",
+						Quantity: model.MaterialQuantity{
+							Quantity: 30,
+							Unit:     "ml",
+						},
+					},
+					{
+						ID:   2,
+						Name: "アマレット",
+						Quantity: model.MaterialQuantity{
+							Quantity: 10,
+							Unit:     "ml",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	r := new(repository_mock.CocktailRepository)
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			r.On("GetByID", mock.Anything, int64(1)).Return(tc.Want, nil)
+			uc := &cocktailUseCase{r}
+			res, err := uc.GetById(context.Background(), tc.ID)
+
+			assert.Equal(t, res, tc.Want)
 			assert.Nil(t, err)
 		})
 	}
